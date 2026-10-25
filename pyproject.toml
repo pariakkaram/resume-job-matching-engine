@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resume-job-matching-engine"
+version = "0.1.0"
+description = "Two-stage neural resume-to-job retrieval: contrastively fine-tuned bi-encoder + FAISS, with cross-encoder re-ranking, evaluated against BM25 and a pretrained bi-encoder."
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+# License for the code is chosen in Phase 9, after the dataset and model licences are checked.
+# Exact, tested versions are pinned in requirements.txt; these are the compatible ranges.
+dependencies = [
+    "torch>=2.2",
+    "sentence-transformers>=6.2,<7",
+    "transformers>=5,<6",
+    "datasets>=4",
+    "accelerate>=1.0",
+    "faiss-cpu>=1.8",
+    "rank-bm25==0.2.2",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "pyarrow>=15",
+    "scikit-learn>=1.5",
+    "matplotlib>=3.8",
+    "gradio>=5",
+    "PyYAML>=6.0",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: needs real data in data/raw/ and/or trained artifacts; skipped when they are absent",
+    "slow: downloads models or runs model inference",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:sentence_transformers.*",
+]

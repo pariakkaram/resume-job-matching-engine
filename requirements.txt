@@ -1,0 +1,26 @@
+# Pinned, tested together locally on Python 3.11.17 (Windows, CPU) on 2026-10-25.
+#
+# torch: install the CPU wheel locally BEFORE this file, because the default PyPI wheel differs by platform:
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+# In Colab, keep Colab's preinstalled CUDA torch; the Colab notebook installs the rest (Phase 8).
+
+torch==2.14.1
+sentence-transformers==6.2.0      # v3+ Trainer API (SentenceTransformerTrainer)
+transformers==5.20.2
+tokenizers==0.23.3
+huggingface_hub==2.3.0
+safetensors==0.8.0
+datasets==5.1.0                   # required by SentenceTransformerTrainer
+accelerate==1.15.0                # required by SentenceTransformerTrainer
+faiss-cpu==1.15.1
+rank-bm25==0.2.2
+numpy==2.4.6
+pandas==3.1.0
+pyarrow==26.0.0                   # Parquet I/O
+scipy==1.17.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+gradio==6.30.0
+PyYAML==6.0.3
+tqdm==4.70.1
+pytest==9.1.1

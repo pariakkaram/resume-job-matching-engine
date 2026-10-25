@@ -1,0 +1,75 @@
+# Evaluation protocol (spec section 9). Every system is evaluated on the same held-out test
+# resumes with the same judgments and the same code.
+
+cutoffs: [10, 50]
+
+ndcg:
+  k: 10
+  gain: exponential     # gain = 2^rel - 1 (rel in {0,1,2}); "linear" would be gain = rel
+  ideal: judged         # IDCG from all judged jobs for the resume, not only retrieved ones
+
+mrr:
+  relevance_threshold: 1        # first job with rel >= 1 counts
+  report_strict: true           # also report MRR with rel == 2 only
+  k: null                       # null = full ranked list returned by the system (top_k_retrieve)
+
+recall:
+  ks: [10, 50]
+  relevance_threshold: 1
+  # Relevance universe = jobs judged relevant for the resume. With manual judgments this is the
+  # POOLED universe (union of judged pools), so recall is "pooled recall" and is an upper bound
+  # on true recall. With weak labels it is every rule-labelled relevant job in the corpus.
+  universe: judged_relevant
+
+judgments:
+  primary: manual           # data/labels/manual_judgments.csv (imported via the labeling workflow)
+  secondary: weak           # weak labels; reported separately and labelled as such
+  unjudged_as: 0            # documented assumption for unjudged / uncertain jobs
+  min_judged_resumes: 30    # below this, primary results are reported as provisional
+
+latency:
+  warmup_runs: 5            # discarded
+  repeats: 1                # timed passes over the test resumes
+  percentiles: [50, 95]
+  stages: [encode, retrieve, rerank, end_to_end]
+  excludes: [model_loading, corpus_encoding, index_building]
+  record_hardware: true
+
+bootstrap:
+  enabled: true
+  paired: true              # resample resumes; same sample for every system
+  n_resamples: 1000
+  confidence: 0.95
+  seed: 42
+
+labeling:
+  n_resumes: 40             # sampled from TEST resumes, stratified by category, seeded
+  pool_depth: 10            # top-k pooled from each system; shuffled; system identity hidden
+  systems: [bm25, pretrained, finetuned, finetuned_rerank]
+  seed: 42
+  export_file: labels/labeling_pool.csv            # data-root relative
+  key_file: labels/labeling_pool_key.csv           # which system retrieved what; do NOT open while labelling
+  import_file: labels/manual_judgments.csv
+  llm_assist:
+    enabled: false          # optional; never required, never treated as ground truth
+    output_file: labels/llm_judgments.csv
+  rubric:
+    2: The job is a clear fit for the resume's field and level of experience.
+    1: Related field or transferable fit, but a clear mismatch in specialism or seniority.
+    0: Different field; the resume gives no reasonable basis for the role.
+
+reports:
+  output_dir: evaluation    # results/<output_dir>/<run_id>/
+  plots: true
+  run_id_format: "%Y%m%d-%H%M%S"
+
+smoke_test:
+  labeling:
+    n_resumes: 5
+    pool_depth: 3
+  bootstrap:
+    n_resamples: 50
+  latency:
+    warmup_runs: 1
+  judgments:
+    min_judged_resumes: 1

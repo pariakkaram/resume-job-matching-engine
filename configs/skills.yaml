@@ -1,0 +1,221 @@
+# Skill vocabulary for transparent skill matching (spec section 10; implemented in Phase 7).
+#
+# Matching rules (src/explainability/skills.py):
+#   * text and terms are NFKC-normalised; matching is case-insensitive unless `case_sensitive: true`;
+#   * punctuation variants are folded: "-", "_" and "/" match a space (so "e-mail" ~ "e mail");
+#   * a term must sit on token boundaries: no letter, digit, "+" or "#" directly before or after it,
+#     so "C" does not match inside "CSS" or "C#", and "Java" does not match "JavaScript";
+#   * terms of three characters or fewer ("AP", "PR", "RN", "UX") match case-sensitively as written;
+#   * `match_name: false` means the canonical name is too ambiguous to search for ("R", "Go", "C");
+#     only the listed aliases are matched;
+#   * the reported skill is always the canonical `name`; aliases are only search terms.
+# Matched skills are EXTRACTED EVIDENCE that a term appears in a document, not proof that the
+# candidate has the skill.
+
+version: 1
+
+skills:
+  # ---------------- Programming and software ----------------
+  - {name: Python, category: programming}
+  - {name: Java, category: programming}
+  - {name: JavaScript, category: programming, aliases: [JS, ECMAScript]}
+  - {name: TypeScript, category: programming}
+  - {name: C++, category: programming, aliases: [cpp]}
+  - {name: C#, category: programming, aliases: [C sharp, csharp]}
+  - {name: C, category: programming, match_name: false, aliases: [C programming, ANSI C, "C/C++"]}
+  - {name: R, category: programming, match_name: false, aliases: [R programming, R language, RStudio, R Studio, "Python/R", "R/Python"]}
+  - {name: Go, category: programming, match_name: false, aliases: [Golang, Go programming, Go language]}
+  - {name: Ruby, category: programming, aliases: [Ruby on Rails, Rails]}
+  - {name: PHP, category: programming}
+  - {name: Scala, category: programming}
+  - {name: Kotlin, category: programming}
+  - {name: Swift, category: programming}
+  - {name: MATLAB, category: programming}
+  - {name: VBA, category: programming, aliases: [Visual Basic for Applications]}
+  - {name: .NET, category: programming, aliases: [dotnet, ASP.NET, .NET Core]}
+  - {name: SQL, category: data, aliases: [T-SQL, PL/SQL, MySQL, PostgreSQL, Postgres, SQL Server, MS SQL]}
+  - {name: NoSQL, category: data, aliases: [MongoDB, Cassandra, DynamoDB]}
+  - {name: HTML, category: web, aliases: [HTML5]}
+  - {name: CSS, category: web, aliases: [CSS3, SASS, SCSS]}
+  - {name: React, category: web, aliases: [React.js, ReactJS]}
+  - {name: Angular, category: web, aliases: [AngularJS]}
+  - {name: Node.js, category: web, aliases: [NodeJS]}
+  - {name: REST APIs, category: web, aliases: [REST, RESTful, REST API, RESTful APIs]}
+  - {name: Git, category: tools, aliases: [GitHub, GitLab, Bitbucket]}
+  - {name: Linux, category: infrastructure, aliases: [Unix, Red Hat, Ubuntu]}
+  - {name: Windows Server, category: infrastructure, aliases: [Active Directory]}
+  - {name: Networking, category: infrastructure, aliases: [TCP/IP, LAN, WAN, routing and switching, Cisco, CCNA]}
+  - {name: Cybersecurity, category: infrastructure, aliases: [information security, network security, cyber security, SIEM]}
+  - {name: AWS, category: cloud, aliases: [Amazon Web Services, EC2, S3]}
+  - {name: Azure, category: cloud, aliases: [Microsoft Azure]}
+  - {name: Google Cloud, category: cloud, aliases: [GCP, Google Cloud Platform]}
+  - {name: Cloud computing, category: cloud, aliases: [cloud infrastructure, cloud services]}
+  - {name: Docker, category: devops, aliases: [containers, containerization]}
+  - {name: Kubernetes, category: devops, aliases: [K8s]}
+  - {name: CI/CD, category: devops, aliases: [continuous integration, continuous delivery, Jenkins]}
+  - {name: Agile, category: methods, aliases: [Scrum, Kanban, sprint planning]}
+  - {name: Software testing, category: methods, aliases: [QA testing, test automation, Selenium, unit testing]}
+  - {name: Help desk support, category: it_support, aliases: [technical support, desktop support, service desk, ticketing, ServiceNow]}
+  - {name: SAP, category: enterprise_software}
+  - {name: Salesforce, category: enterprise_software, aliases: [SFDC]}
+  - {name: Oracle, category: enterprise_software}
+  - {name: ERP systems, category: enterprise_software, aliases: [ERP, NetSuite, Microsoft Dynamics]}
+
+  # ---------------- Data, ML and AI ----------------
+  - {name: Machine learning, category: ml, aliases: [ML, scikit-learn, sklearn]}
+  - {name: Deep learning, category: ml, aliases: [neural networks, neural network, CNN, RNN, LSTM]}
+  - {name: PyTorch, category: ml}
+  - {name: TensorFlow, category: ml, aliases: [Keras]}
+  - {name: NLP, category: ml, aliases: [natural language processing, text mining]}
+  - {name: Computer vision, category: ml, aliases: [image recognition, OpenCV]}
+  - {name: Generative AI, category: ml, aliases: [LLM, LLMs, large language models, GenAI]}
+  - {name: Statistics, category: data, aliases: [statistical analysis, regression analysis, hypothesis testing, SPSS, SAS]}
+  - {name: Data analysis, category: data, aliases: [data analytics, analytics, data analyst]}
+  - {name: Data visualization, category: data, aliases: [dashboards, dashboard, data visualisation]}
+  - {name: Tableau, category: data}
+  - {name: Power BI, category: data, aliases: [PowerBI]}
+  - {name: Excel, category: office, aliases: [Microsoft Excel, MS Excel, spreadsheets, pivot tables, VLOOKUP]}
+  - {name: ETL, category: data, aliases: [data pipelines, data warehousing, data warehouse]}
+  - {name: Big data, category: data, aliases: [Hadoop, Spark, Apache Spark, Databricks, Snowflake]}
+  - {name: Pandas, category: data, aliases: [NumPy]}
+
+  # ---------------- Business, sales and management ----------------
+  - {name: Project management, category: management, aliases: [PMP, project planning, project manager]}
+  - {name: Team leadership, category: management, aliases: [team management, staff supervision, people management, supervised staff]}
+  - {name: Budgeting, category: management, aliases: [budget management, budget planning, forecasting]}
+  - {name: Strategic planning, category: management, aliases: [strategy development, business strategy]}
+  - {name: Stakeholder management, category: management, aliases: [stakeholder engagement]}
+  - {name: Sales, category: sales, aliases: [selling, sales experience]}
+  - {name: Business development, category: sales, aliases: [new business development, lead generation, prospecting]}
+  - {name: Account management, category: sales, aliases: [key account management, client relationship management]}
+  - {name: Negotiation, category: sales, aliases: [negotiating, contract negotiation]}
+  - {name: CRM, category: sales, aliases: [customer relationship management, HubSpot]}
+  - {name: Cold calling, category: sales}
+  - {name: Retail sales, category: sales, aliases: [point of sale, POS, merchandising, visual merchandising]}
+  - {name: Customer service, category: service, aliases: [customer support, client service, customer care]}
+  - {name: Call center, category: service, aliases: [contact center, call centre, inbound calls, outbound calls]}
+  - {name: Consulting, category: business, aliases: [management consulting, advisory]}
+  - {name: Business analysis, category: business, aliases: [requirements gathering, process improvement, process mapping]}
+  - {name: Lean Six Sigma, category: business, aliases: [Six Sigma, Lean manufacturing, Kaizen]}
+  - {name: Operations management, category: business}
+  - {name: Supply chain management, category: business, aliases: [supply chain, logistics, procurement, inventory management]}
+  - {name: Microsoft Office, category: office, aliases: [MS Office, Microsoft Word, PowerPoint, Outlook]}
+
+  # ---------------- Finance, accounting and banking ----------------
+  - {name: Accounting, category: finance, aliases: [general ledger, journal entries, month-end close, GAAP, IFRS]}
+  - {name: Accounts payable, category: finance, aliases: [AP]}
+  - {name: Accounts receivable, category: finance, aliases: [AR, collections, billing]}
+  - {name: Bookkeeping, category: finance}
+  - {name: QuickBooks, category: finance}
+  - {name: Payroll, category: finance, aliases: [ADP, payroll processing]}
+  - {name: Auditing, category: finance, aliases: [audit, internal audit, external audit, SOX]}
+  - {name: Taxation, category: finance, aliases: [tax preparation, tax returns, tax]}
+  - {name: Financial analysis, category: finance, aliases: [financial modeling, financial modelling, FP&A, variance analysis]}
+  - {name: Financial reporting, category: finance, aliases: [financial statements]}
+  - {name: Reconciliation, category: finance, aliases: [account reconciliation, bank reconciliation]}
+  - {name: CPA, category: finance, aliases: [Certified Public Accountant]}
+  - {name: CFA, category: finance, aliases: [Chartered Financial Analyst]}
+  - {name: Investment management, category: finance, aliases: [portfolio management, wealth management, asset management]}
+  - {name: Risk management, category: finance, aliases: [credit risk, risk assessment]}
+  - {name: Lending, category: banking, aliases: [loan origination, loans, mortgage, mortgages, underwriting, credit analysis]}
+  - {name: Banking operations, category: banking, aliases: [teller, branch operations, cash handling]}
+  - {name: Anti-money laundering, category: banking, aliases: [AML, KYC, BSA]}
+  - {name: Compliance, category: business, aliases: [regulatory compliance]}
+
+  # ---------------- HR ----------------
+  - {name: Recruiting, category: hr, aliases: [recruitment, talent acquisition, sourcing candidates, interviewing]}
+  - {name: Onboarding, category: hr, aliases: [new hire orientation]}
+  - {name: Employee relations, category: hr, aliases: [labor relations]}
+  - {name: Benefits administration, category: hr, aliases: [benefits]}
+  - {name: Compensation, category: hr, aliases: [compensation and benefits]}
+  - {name: HRIS, category: hr, aliases: [Workday, BambooHR, UltiPro, PeopleSoft]}
+  - {name: Performance management, category: hr, aliases: [performance reviews, performance appraisal]}
+  - {name: Training and development, category: hr, aliases: [employee training, learning and development, L&D]}
+  - {name: Employment law, category: hr, aliases: [FMLA, EEO, ADA compliance, labor law]}
+
+  # ---------------- Marketing, media, PR and design ----------------
+  - {name: Marketing, category: marketing, aliases: [marketing strategy, marketing campaigns]}
+  - {name: Digital marketing, category: marketing, aliases: [online marketing, email marketing, marketing automation]}
+  - {name: Social media, category: marketing, aliases: [social media marketing, Facebook, Instagram, Twitter, LinkedIn, TikTok]}
+  - {name: SEO, category: marketing, aliases: [search engine optimization, SEM, Google Ads, PPC]}
+  - {name: Google Analytics, category: marketing}
+  - {name: Content creation, category: media, aliases: [content strategy, content writing, blogging]}
+  - {name: Copywriting, category: media, aliases: [copy writing, copyediting, editing, proofreading]}
+  - {name: Video production, category: media, aliases: [video editing, videography, Final Cut Pro, Premiere Pro, Adobe Premiere]}
+  - {name: Photography, category: media, aliases: [photo editing, Lightroom]}
+  - {name: Public relations, category: pr, aliases: [PR, media relations, press releases]}
+  - {name: Communications, category: pr, aliases: [corporate communications, internal communications, communication skills]}
+  - {name: Event planning, category: pr, aliases: [event management, event coordination]}
+  - {name: Adobe Creative Suite, category: design, aliases: [Adobe Creative Cloud, Photoshop, Illustrator, InDesign]}
+  - {name: Graphic design, category: design, aliases: [visual design, layout design, branding]}
+  - {name: UX design, category: design, aliases: [UX, UI, user experience, user interface, wireframing, prototyping, Figma]}
+  - {name: Interior design, category: design, aliases: [space planning]}
+  - {name: AutoCAD, category: design, aliases: [CAD, Revit, SolidWorks]}
+  - {name: Instructional design, category: design, aliases: [e-learning, eLearning, Articulate Storyline]}
+
+  # ---------------- Engineering, construction, automotive, aviation ----------------
+  - {name: Mechanical engineering, category: engineering, aliases: [mechanical design]}
+  - {name: Electrical engineering, category: engineering, aliases: [circuit design, PLC, electrical systems]}
+  - {name: Civil engineering, category: engineering, aliases: [structural engineering, structural analysis]}
+  - {name: Quality assurance, category: engineering, aliases: [quality control, QA/QC, ISO 9001]}
+  - {name: Manufacturing, category: engineering, aliases: [production planning, manufacturing processes]}
+  - {name: Construction management, category: construction, aliases: [construction project management, site management]}
+  - {name: Blueprint reading, category: construction, aliases: [blueprints, reading blueprints, construction drawings]}
+  - {name: Cost estimating, category: construction, aliases: [estimating, takeoffs, quantity takeoff]}
+  - {name: OSHA, category: safety, aliases: [OSHA 10, OSHA 30, workplace safety, safety compliance]}
+  - {name: Carpentry, category: construction, aliases: [framing]}
+  - {name: Electrical wiring, category: construction, aliases: [electrician]}
+  - {name: HVAC, category: construction}
+  - {name: Plumbing, category: construction}
+  - {name: Welding, category: construction, aliases: [welder, MIG, TIG]}
+  - {name: Heavy equipment operation, category: construction, aliases: [forklift, excavator, heavy equipment]}
+  - {name: Automotive repair, category: automotive, aliases: [auto repair, vehicle maintenance, vehicle repair, ASE certified, ASE certification]}
+  - {name: Diagnostics, category: automotive, aliases: [diagnostic testing, troubleshooting]}
+  - {name: Diesel mechanics, category: automotive, aliases: [diesel engines, diesel technician]}
+  - {name: Aircraft maintenance, category: aviation, aliases: [aircraft mechanic, A&P, airframe and powerplant, avionics]}
+  - {name: FAA regulations, category: aviation, aliases: [FAA]}
+  - {name: Flight operations, category: aviation, aliases: [flight planning, pilot]}
+
+  # ---------------- Healthcare and social services ----------------
+  - {name: Patient care, category: healthcare, aliases: [direct patient care, bedside care]}
+  - {name: Nursing, category: healthcare, aliases: [registered nurse, RN, LPN, BSN]}
+  - {name: CPR, category: healthcare, aliases: [BLS, basic life support, ACLS, PALS, first aid]}
+  - {name: Electronic health records, category: healthcare, aliases: [EHR, EMR, Epic, Cerner]}
+  - {name: Medical terminology, category: healthcare}
+  - {name: HIPAA, category: healthcare}
+  - {name: Phlebotomy, category: healthcare}
+  - {name: Medication administration, category: healthcare, aliases: [administering medications]}
+  - {name: Medical billing and coding, category: healthcare, aliases: [medical coding, medical billing, ICD-10, CPT coding]}
+  - {name: Case management, category: social_services, aliases: [case manager, care coordination]}
+  - {name: Crisis intervention, category: social_services, aliases: [de-escalation]}
+  - {name: Counseling, category: social_services, aliases: [counselling, therapy sessions]}
+  - {name: Advocacy, category: social_services, aliases: [patient advocacy, client advocacy]}
+  - {name: Community outreach, category: social_services, aliases: [outreach]}
+
+  # ---------------- Education, arts, food, fitness, fashion ----------------
+  - {name: Lesson planning, category: education, aliases: [lesson plans, curriculum development, curriculum design]}
+  - {name: Classroom management, category: education}
+  - {name: Special education, category: education, aliases: [IEP, IEPs, individualized education program]}
+  - {name: Early childhood education, category: education, aliases: [preschool, early childhood]}
+  - {name: Teaching certification, category: education, aliases: [teaching certificate, certified teacher, teaching license]}
+  - {name: Tutoring, category: education}
+  - {name: Fine arts, category: arts, aliases: [painting, drawing, sculpture, studio art]}
+  - {name: Music, category: arts, aliases: [music performance, music education]}
+  - {name: Theatre, category: arts, aliases: [theater, stage management, acting]}
+  - {name: Culinary arts, category: culinary, aliases: [cooking, culinary]}
+  - {name: Menu development, category: culinary, aliases: [menu planning, menu design]}
+  - {name: Food safety, category: culinary, aliases: [ServSafe, food handling, HACCP, sanitation]}
+  - {name: Kitchen management, category: culinary, aliases: [kitchen operations, food cost control, inventory control]}
+  - {name: Catering, category: culinary, aliases: [banquets, banquet]}
+  - {name: Personal training, category: fitness, aliases: [personal trainer, NASM, ACE certified, ACSM]}
+  - {name: Group fitness instruction, category: fitness, aliases: [group fitness, group exercise, fitness classes]}
+  - {name: Yoga, category: fitness, aliases: [Pilates]}
+  - {name: Nutrition, category: fitness, aliases: [nutrition coaching, meal planning]}
+  - {name: Fashion design, category: fashion, aliases: [apparel design, pattern making, garment construction, sewing]}
+  - {name: Textiles, category: fashion, aliases: [fabrics, textile]}
+  - {name: Styling, category: fashion, aliases: [wardrobe styling, personal styling]}
+
+  # ---------------- Languages and general ----------------
+  - {name: Bilingual (Spanish), category: language, aliases: [Spanish, bilingual Spanish, fluent in Spanish]}
+  - {name: Data entry, category: office, aliases: [typing]}
+  - {name: Scheduling, category: office, aliases: [calendar management, appointment scheduling]}

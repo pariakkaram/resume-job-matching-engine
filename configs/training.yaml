@@ -1,0 +1,84 @@
+# Bi-encoder contrastive fine-tuning (System C) and the negative-sampling ablation.
+# Uses the Sentence Transformers v3+ Trainer API (installed: v6.2). Output paths are relative to
+# the artifacts root (default <repo>/artifacts, override RJM_ARTIFACTS_DIR).
+
+base_model: sentence-transformers/all-MiniLM-L6-v2   # same model as System B, to isolate fine-tuning
+seed: 42
+deterministic: true          # torch deterministic algorithms where supported (warn-only)
+max_seq_length: 256          # MiniLM supports up to 512; 256 is its training length. Text is
+                             # truncated from the end (see data.yaml `text`).
+
+# Positive pairs come from weak labels on TRAINING resumes only (src/data/build_labels.py).
+pairs:
+  positive_min_grade: 2
+  positive_min_confidence: medium   # high | medium | low
+  max_positives_per_resume: 8       # seeded sample; stops IT/HEALTHCARE (1,000+ grade-2 jobs) dominating
+  validation_check:                 # "positive pair validation" (spec section 8)
+    require_nonempty_text: true
+    require_distinct_ids: true
+    forbid_test_resumes: true
+
+negatives:
+  mode: hard                 # none | random | hard. The ablation runs below override this.
+  per_pair: 1                # explicit negatives per (resume, positive) -> (anchor, positive, negative) triplets
+  pool_max_grade: 0          # only grade-0 jobs may be negatives ...
+  pool_min_confidence: high  # ... and only confident ones (title in an unrelated family)
+  hard:
+    method: bm25
+    top_k: 100               # BM25 depth searched over the job corpus for each training resume
+    sample_from_top: 20      # pick uniformly among the top eligible hits (reduces false negatives)
+  output_dir: negatives      # artifacts/negatives/<mode>.parquet, persisted for reproducibility
+
+loss:
+  name: MultipleNegativesRankingLoss
+  scale: 20.0
+  # In-batch negatives from a resume of the same or a related category are often relevant
+  # (false negatives). When true, Phase 4 masks those logits using the weak-label rules.
+  mask_in_batch_false_negatives: true
+
+trainer:
+  output_dir: models         # artifacts/models/<run_name>/
+  epochs: 1
+  batch_size: 32
+  learning_rate: 2.0e-5
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  fp16: auto                 # true on CUDA, false on CPU
+  batch_sampler: no_duplicates
+  eval_strategy: steps
+  eval_steps: 100
+  save_steps: 100
+  save_total_limit: 2
+  logging_steps: 20
+  load_best_model_at_end: true
+  metric_for_best_model: val_ndcg@10    # weak labels on VALIDATION resumes, never test
+  resume_from_checkpoint: auto          # resume the latest checkpoint in the run dir if present
+  max_steps: -1
+
+# Named runs. Each deep-merges over the settings above. The ablation trains both with the same
+# base model, split, pairs, step budget and evaluation code; only the negatives differ.
+runs:
+  biencoder_random:
+    negatives: {mode: random}
+  biencoder_hard:
+    negatives: {mode: hard}
+default_run: biencoder_hard   # the model used as "fine-tuned bi-encoder" (Systems C and D)
+
+cross_encoder:
+  finetune: false   # optional separate experiment (spec section 8); off by default
+
+smoke_test:
+  max_seq_length: 128
+  pairs:
+    max_positives_per_resume: 2
+  negatives:
+    hard:
+      top_k: 20
+      sample_from_top: 5
+  trainer:
+    batch_size: 8
+    max_steps: 10
+    eval_steps: 5
+    save_steps: 5
+    logging_steps: 1
+    fp16: false

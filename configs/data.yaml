@@ -1,0 +1,109 @@
+# Data ingestion, preprocessing, deduplication, job sampling and resume splitting.
+# Paths under `paths` are relative to the data root (default: <repo>/data, override: RJM_DATA_DIR).
+# Source file paths are relative to `paths.raw_dir`.
+
+seed: 42
+
+paths:
+  raw_dir: raw
+  processed_dir: processed
+  labels_dir: labels
+
+resumes:
+  source: resume/Resume.csv
+  format: csv
+  # canonical field -> source column
+  columns:
+    resume_id: ID
+    resume_text: Resume_str
+    resume_category: Category
+  # HTML version of the same resume, stripped of tags; used only when resume_text is empty.
+  fallback_text_column: Resume_html
+  id_prefix: "R"            # resume_id = "R" + source ID, e.g. R16852973
+  max_rows: null            # null = all; smoke test sets a small stratified subset
+
+jobs:
+  source: linkedin/job_postings.csv
+  format: csv
+  columns:
+    job_id: job_id
+    job_title: title
+    job_description: description
+    location: location
+    employment_type: formatted_work_type
+  id_prefix: "J"            # job_id = "J" + source job_id, e.g. J3757940
+  # Extra source columns carried through as metadata if present (never required).
+  metadata_columns:
+    - formatted_experience_level
+    - remote_allowed
+    - min_salary
+    - med_salary
+    - max_salary
+    - pay_period
+    - currency
+    - job_posting_url
+  # Optional lookups joined onto the postings. Missing files produce a warning, not an error.
+  lookups:
+    company:
+      source: linkedin/companies.csv
+      key: company_id          # column in both files
+      value: name              # -> canonical `company`
+    function_codes:
+      source: linkedin/job_skills.csv
+      key: job_id
+      value: skill_abr         # -> canonical `function_codes` (list[str]); used only for weak labels
+
+# Text representation shared by EVERY system (BM25, both bi-encoders, the cross-encoder and training).
+# Fields are canonical columns. Encoders truncate from the end at their max_seq_length, so the
+# job title and the resume headline/summary (which come first) are always kept.
+text:
+  job: "{job_title}. {job_description}"
+  resume: "{resume_text}"
+
+preprocessing:
+  unicode_form: NFKC
+  strip_html: true           # remove tags/entities when a field contains HTML
+  collapse_whitespace: true
+  keep_case: true            # MiniLM tokenizers lowercase anyway; BM25 lowercases in its tokenizer
+  min_resume_words: 50       # shorter resumes are dropped and reported
+  min_job_description_words: 20
+
+dedup:
+  resumes:
+    exact: normalized_text   # keep the lowest source ID; duplicates reported
+    near_duplicate_audit:    # reported only, never auto-dropped
+      method: tfidf_cosine
+      threshold: 0.9
+  jobs:
+    exact: normalized_title_and_description   # keep the lowest job_id; others kept as aliases
+    near_duplicate_audit:
+      method: tfidf_cosine
+      threshold: 0.95
+
+sampling:
+  n_jobs: 10000
+  # Families with at most this many jobs (after dedup) are taken in full before the rest of the
+  # budget is filled by a seeded uniform draw from the remaining jobs (keeps natural proportions).
+  rare_family_max_jobs: 400
+  # Rare-family protection only applies to families some included category uses (primary/related).
+  protect: mapped_families
+
+split:
+  test_fraction: 0.2                 # of resumes, held out
+  validation_fraction_of_train: 0.1  # of the training resumes
+  stratify_by: resume_category
+  seed: 42
+
+smoke_test:
+  sampling:
+    n_jobs: 200
+    rare_family_max_jobs: 10
+  resumes:
+    max_rows: 50     # stratified by category, seeded
+  dedup:
+    resumes:
+      near_duplicate_audit:
+        method: none
+    jobs:
+      near_duplicate_audit:
+        method: none

@@ -1,12 +1,38 @@
-# Raw datasets (never commit)
+# Raw datasets (never commit: personal data and third-party licences)
 data/raw/
+
+# Generated data. data/labels/ is committed only for manual judgments (IDs and grades, no text).
+data/processed/
+data/labels/labeling_pool.csv
+data/labels/labeling_pool_key.csv
+data/labels/llm_judgments.csv
+
+# Models, indexes, negatives, checkpoints and evaluation outputs (regenerate with scripts/)
+artifacts/*
+!artifacts/.gitkeep
+results/*
+!results/.gitkeep
+
+# Temporary files from atomic writes
+*.tmp
 
 # Python virtual environment
 .venv/
 
-# Python bytecode cache
+# Python bytecode cache and build metadata
 __pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Test and tool caches
+.pytest_cache/
+.ipynb_checkpoints/
+.gradio/
+flagged/
 
 # Environment variables / secrets
 .env
 .env.*
+!.env.example
