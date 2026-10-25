@@ -1,0 +1,12 @@
+# Raw datasets (never commit)
+data/raw/
+
+# Python virtual environment
+.venv/
+
+# Python bytecode cache
+__pycache__/
+
+# Environment variables / secrets
+.env
+.env.*
