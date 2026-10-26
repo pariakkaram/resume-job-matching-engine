@@ -255,8 +255,13 @@ def run_inputs(run_cfg: Mapping[str, Any], data: TrainingData, negset: NegativeS
 
 
 def latest_checkpoint(checkpoint_dir: Path) -> Path | None:
+    """The newest *complete* checkpoint. The HF Trainer writes ``trainer_state.json`` after the model
+    and optimizer, so a checkpoint without it was cut off mid-write (e.g. a Colab disconnect) and is skipped."""
     found = [p for p in checkpoint_dir.glob("checkpoint-*") if p.is_dir() and p.name.split("-")[-1].isdigit()]
-    return max(found, key=lambda p: int(p.name.split("-")[-1])) if found else None
+    complete = [p for p in found if (p / "trainer_state.json").is_file()]
+    for partial in sorted(set(found) - set(complete)):
+        log.warning("ignoring incomplete checkpoint %s (no trainer_state.json)", partial)
+    return max(complete, key=lambda p: int(p.name.split("-")[-1])) if complete else None
 
 
 def _same_inputs(path: Path, inputs: Mapping[str, Any]) -> bool:

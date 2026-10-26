@@ -9,7 +9,9 @@ Every file in the repository and its status (spec §0.2, §19):
 | `tested` | executed or covered by passing tests |
 | `blocked` | cannot proceed (reason given) |
 
-Last updated: **end of Phase 5** (2026-10-26). Test run: `pytest` gives **197 passed, 1 skipped**, including 8 integration tests on the real data, MiniLM and the real cross-encoder (Python 3.11.17, Windows, CPU). The skipped test is the real-data System D test, which needs the full fine-tuned model (Colab).
+Last updated: **Colab training notebook, after Phase 5** (2026-10-26). Test run: `pytest` gives **198 passed, 1 skipped**, including 8 integration tests on the real data, MiniLM and the real cross-encoder (Python 3.11.17, Windows, CPU). The skipped test is the real-data System D test, which needs the full fine-tuned model (Colab).
+
+Colab notebook status: `notebooks/colab_train.ipynb` is written but **not executed** (it needs Colab and Drive). Checked locally only: every code cell parses, the torch line is removed from the requirements, and the System D step stops when that test is skipped (verified on this laptop, where it skips).
 
 Phase 5 execution status: System D (top 50 → cross-encoder → top 10) **ran end to end on the smoke data** (CPU; a smoke model was retrained for this and deleted again afterwards). The real cross-encoder was downloaded and tested. On the full data, Systems A and B were queried with the existing indexes; Systems C and D are blocked until full training runs on Colab. Phase 5 review (2026-10-26): approved; D66–D71 accepted.
 
@@ -32,7 +34,7 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `PROJECT_SPEC.md` | provided | – | Source of truth (written by the user) |
 | `CLAUDE.md` | implemented | 3 | Working rules, including the approval rule for labels/sampler/corpus changes |
 | `MANIFEST.md` | implemented | 2 | This file; updated every phase |
-| `README.md` | implemented | 2 → 9 | Short status page for now; full 24-section README in Phase 9 |
+| `README.md` | implemented | 2 → 9 | Short status page for now, with Colab training and copy-back instructions; full 24-section README in Phase 9 |
 | `LICENSE` | planned | 9 | Chosen after the dataset and model licences are verified (audit §6) |
 | `.gitignore` | tested | 2 | Checked with `git check-ignore`: raw data, processed data, artifacts, results, secrets |
 | `.env.example` | planned | 6 | Only needed for the optional LLM-assisted labelling; the core needs no keys |
@@ -56,7 +58,7 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 |---|---|---|---|
 | `docs/PHASE1_AUDIT.md` | done | 1 | Requirements checklist, data findings, risks |
 | `docs/ARCHITECTURE.md` | implemented | 2 → 5 | Module contracts, schemas, protocols, artifact layout. Updated for Phase 4 (training modules, pair-file columns, model/negatives layout, ablation must report the fallback count) and Phase 5 (re-ranker, pipeline API, `fallback_reason`) |
-| `docs/DECISIONS.md` | implemented | 2 → 5 | D1–D17, D47–D57, D58–D65 (Phase 4) and D66–D71 (Phase 5) accepted; D18–D46 proposed |
+| `docs/DECISIONS.md` | implemented | 2 → 5 | D1–D17, D47–D57, D58–D65 (Phase 4) and D66–D71 (Phase 5) accepted; D18–D46 and D72–D75 (Colab notebook) proposed |
 | `docs/LABEL_MAPPING_REVIEW.md` | tested | 2 → 3 | Regenerated for labels.yaml v3 by `scripts/review_label_mapping.py` |
 | `data/README.md` | implemented | 3 | Sources, versions, licence status (unverified), processing steps, measured statistics, privacy |
 
@@ -88,7 +90,7 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `src/training/mine_hard_negatives.py` | tested | 4 | Random and BM25 negatives, training resumes only, persisted with fingerprints. Ran on the full data in about 30 s (CPU). Hard set: 13,576 BM25 + 344 `random_fallback` pairs (2.5%, 43 resumes, mostly ACCOUNTANT; accepted, D60) |
 | `src/training/losses.py` | tested | 4 | *Not in the spec tree* (D65). MNRL with in-batch false-negative masking (D24, D58) |
 | `src/training/validation.py` | tested | 4 | *Not in the spec tree* (D65). Weak-label NDCG@10 on validation resumes for checkpoint selection (D61) |
-| `src/training/train_biencoder.py` | tested | 4 | SentenceTransformerTrainer run: checkpoints, best model, config export, resume, freeze check. Smoke-tested on CPU with MiniLM; full training not run yet |
+| `src/training/train_biencoder.py` | tested | 4 | SentenceTransformerTrainer run: checkpoints, best model, config export, resume (skips incomplete checkpoints, D73), freeze check. Smoke-tested on CPU with MiniLM; full training not run yet |
 | `src/training/train_cross_encoder.py` | not implemented (optional) | – | Optional experiment; kept off by the user's decision of 2026-10-26 (`cross_encoder.finetune: false`) |
 | `src/evaluation/__init__.py` | implemented | 4 → 6 | |
 | `src/evaluation/metrics.py` | tested (partial) | 4 → 6 | `ndcg_at_k` only (used for checkpoint selection); MRR and recall in Phase 6 |
@@ -136,10 +138,10 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `tests/test_faiss_index.py` | tested | 3 | 8 tests: normalisation, cosine, ID map, persistence, mismatch and missing files |
 | `tests/test_hard_negatives.py` | tested | 4 | 18 tests: every exclusion rule (positives, grade 1, uncertain, low confidence, near-duplicate and identical-text groups), BM25 band and ranks, fallback, seeding, refusal of val/test resumes, only training resumes queried, persistence/reuse; 2 integration tests on the real negatives |
 | `tests/test_metrics.py` | tested (partial) | 4 → 6 | 3 tests: NDCG with both gains against hand-computed values, edge cases |
-| `tests/test_training.py` | tested | 4 | *Not in the spec tree* (D65). 12 tests: positive-pair validation, val-only evaluator, masked loss (mask, reference value, equality with plain MNRL), dataset and masking tables, end-to-end training with train/val/test isolation, resume and changed-input refusal, freeze enforcement |
+| `tests/test_training.py` | tested | 4 | *Not in the spec tree* (D65). 13 tests: positive-pair validation, incomplete-checkpoint skipping, val-only evaluator, masked loss (mask, reference value, equality with plain MNRL), dataset and masking tables, end-to-end training with train/val/test isolation, resume and changed-input refusal, freeze enforcement |
 | `tests/test_skill_matching.py` | planned | 7 | |
 | `tests/test_pipeline.py` | tested | 3 → 7 | 14 tests: synthetic end-to-end, restart/stale-index handling, empty input; real-data integration for bm25 and pretrained. Phase 5: System D now fails on a missing model before loading the cross-encoder |
-| `tests/test_reranker.py` | tested | 5 | *Not in the spec tree* (D71). 12 tests: re-rank order, raw scores and ties; unavailable model; System D vs System C candidates; fallback on load and scoring failures; ID errors never hidden; `fallback: error`; top-k caps; finished-training and fingerprint checks; portable index after moving the artifacts root; ranking validation; real cross-encoder (integration); real System D (integration, skipped until the full model exists) |
+| `tests/test_reranker.py` | tested | 5 | *Not in the spec tree* (D71). 12 tests: re-rank order, raw scores and ties; unavailable model; System D vs System C candidates; fallback on load and scoring failures; ID errors never hidden; `fallback: error`; top-k caps; finished-training and fingerprint checks; portable index after moving the artifacts root; ranking validation; real cross-encoder (integration); real System D (integration; uses the configured storage roots, D74; skipped until the full model exists) |
 | `tests/test_utils.py` | tested | 3 | *Not in the spec tree* (D39). 4 tests |
 | `tests/test_freeze.py` | tested | 3 | *Not in the spec tree* (D56). 9 tests: FROZEN.json matches labels.yaml and the processed corpus (integration), enforcement in `prepare_data` |
 
@@ -151,7 +153,8 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `notebooks/02_baseline_retrieval.ipynb` | planned (optional) | 8 | Same |
 | `notebooks/03_biencoder_training.ipynb` | planned (optional) | 8 | Not created in Phase 4: training runs through `scripts/train.py`; the Colab notebook (Phase 8) calls it |
 | `notebooks/04_evaluation_and_ablation.ipynb` | planned | 6 | Same |
-| `notebooks/colab_full_pipeline.ipynb` | planned | 8 | Required |
+| `notebooks/colab_train.ipynb` | implemented (not executed) | 4–5 → 8 | *Not in the spec tree.* Full training on a Colab T4: GPU check, Drive (`MyDrive/rjm/`), clone with optional `GITHUB_TOKEN` secret, venv install that keeps Colab's torch (D72), prepare_data, labels-v1 freeze check, mining, both runs, fine-tuned index, System D demo and test (a skip counts as failure), saved-paths summary, optional export zip. Rerun-safe. Generated as plain-Python cells |
+| `notebooks/colab_full_pipeline.ipynb` | planned | 8 | Required; will extend `colab_train.ipynb` with evaluation, ablation and the demo |
 
 ## Data and artifact directories
 

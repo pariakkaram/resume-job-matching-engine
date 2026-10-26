@@ -21,7 +21,7 @@ from src.retrieval.pipeline import (
 from src.retrieval.reranker import CrossEncoderReranker
 from src.retrieval.types import RankedJob, ScoredJob
 
-from .conftest import ARTIFACTS_DIR, PROCESSED_DIR, FakeCrossEncoder, FakeSentenceModel
+from .conftest import FakeCrossEncoder, FakeSentenceModel
 
 IT_RESUME = "Software engineer. Python, Java, Linux servers, cloud database work and helpdesk code."
 
@@ -267,20 +267,31 @@ def test_real_cross_encoder_scores_are_raw_logits_and_long_pairs_truncate(monkey
     assert np.isfinite(scores["long"])
 
 
-FULL_FINETUNED = ARTIFACTS_DIR / "models" / "biencoder_hard" / "meta.json"
+def _full_system_d_ready() -> bool:
+    """The full (non-smoke) System C model and index exist under the configured storage roots.
+
+    Uses RJM_DATA_DIR / RJM_ARTIFACTS_DIR when set (Colab keeps them on Drive), else the repo folders.
+    """
+    from src.config import storage_root
+
+    artifacts, data = storage_root("artifacts"), storage_root("data")
+    return (
+        (artifacts / "models" / "biencoder_hard" / "meta.json").is_file()
+        and (artifacts / "indexes" / "finetuned" / "meta.json").is_file()
+        and (data / "processed" / "jobs.parquet").is_file()
+        and _cross_encoder_cached()
+    )
 
 
 @pytest.mark.integration
 @pytest.mark.slow
 @pytest.mark.skipif(
-    not (FULL_FINETUNED.is_file() and (ARTIFACTS_DIR / "indexes" / "finetuned" / "meta.json").is_file()
-         and (PROCESSED_DIR / "jobs.parquet").is_file() and _cross_encoder_cached()),
+    not _full_system_d_ready(),
     reason="needs the full fine-tuned model and index (Colab training, then build_index.py --system finetuned)",
 )
 def test_real_system_d_end_to_end(monkeypatch):
-    for var in ("RJM_DATA_DIR", "RJM_ARTIFACTS_DIR", "RJM_SMOKE_TEST"):
-        monkeypatch.delenv(var, raising=False)
-    configs = {name: load_config(name) for name in ("data", "retrieval")}
+    monkeypatch.delenv("RJM_SMOKE_TEST", raising=False)  # keep RJM_DATA_DIR / RJM_ARTIFACTS_DIR (Colab: Drive)
+    configs = {name: load_config(name, smoke_test=False) for name in ("data", "retrieval")}
     pipeline = MatchingPipeline.from_config("finetuned_rerank", configs)
     result = pipeline.search("Registered nurse with ICU and emergency department experience, BLS and ACLS certified.")
     assert not result.fallback_used

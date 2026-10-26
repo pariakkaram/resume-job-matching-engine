@@ -55,6 +55,40 @@ System D re-ranks the fine-tuned bi-encoder's top 50 with `cross-encoder/ms-marc
 returns the top 10. Cross-encoder scores are raw logits, not probabilities. If the cross-encoder
 cannot be loaded, results are returned in bi-encoder order and clearly marked as a fallback.
 
+## Full training on Colab (T4)
+
+Open [notebooks/colab_train.ipynb](notebooks/colab_train.ipynb) in Colab with a T4 runtime and *Run all*.
+It reads the raw data from `MyDrive/rjm/data/raw/` and keeps everything it builds under `MyDrive/rjm/`
+(`data/processed/`, `artifacts/`). It trains both runs and checks System D. Every step is safe to rerun
+after a disconnect: finished steps are skipped and training resumes from its last checkpoint. The
+notebook's first cell lists what to upload and how to add the `GITHUB_TOKEN` secret for a private repo.
+
+### Copying Colab artifacts back to the laptop
+
+1. In Colab, run the notebook's last section. It writes `MyDrive/rjm/export/rjm-colab-artifacts.zip`
+   with both final models (`final/` plus `meta.json`, `training_config.yaml`, `train_log.jsonl`), the
+   negatives and the fine-tuned index. Checkpoints are left out: they only matter for resuming training,
+   and they stay on Drive.
+2. Download the zip (Drive web page or Google Drive for desktop) and extract it **in the repository root**.
+   The paths inside start with `artifacts/`:
+
+   ```powershell
+   Expand-Archive rjm-colab-artifacts.zip -DestinationPath . -Force
+   ```
+
+   This replaces `artifacts/negatives/{random,hard}.parquet` with the Colab copies. That is intended:
+   each model's `meta.json` records the exact negatives file it was trained on.
+3. Check that everything loads and that System D runs:
+
+   ```bash
+   .venv/Scripts/python scripts/search.py --system finetuned_rerank --demo
+   .venv/Scripts/python -m pytest -m integration     # the System D test now runs instead of skipping
+   ```
+
+The fine-tuned index stores the model as `models/biencoder_hard/final` (relative to `artifacts/`), so it
+loads at a different path. It still checks the corpus: your local `data/processed/` must be the labels-v1
+corpus, which it is unless it was rebuilt with `--unfreeze`.
+
 ## Known limitations of the weak labels
 
 Training labels come from a category → job-family mapping (`configs/labels.yaml`, approved

@@ -226,6 +226,17 @@ def test_interrupted_run_resumes_and_refuses_changed_inputs(training_env):
     assert not fresh.skipped and fresh.meta["resumed_from"] is None
 
 
+def test_latest_checkpoint_skips_checkpoints_cut_off_mid_write(tmp_path):
+    for step, complete in ((100, True), (200, True), (300, False), (1000, False)):
+        directory = tmp_path / f"checkpoint-{step}"
+        directory.mkdir()
+        if complete:
+            (directory / "trainer_state.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "checkpoint-final").mkdir()  # not a step number
+    assert tb.latest_checkpoint(tmp_path) == tmp_path / "checkpoint-200"
+    assert tb.latest_checkpoint(tmp_path / "missing") is None
+
+
 def test_training_stops_on_a_frozen_corpus_mismatch_unless_unfrozen(training_env, monkeypatch):
     configs, _ = training_env
     configs["data"]["freeze"] = {"enforce": True}
