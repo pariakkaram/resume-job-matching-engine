@@ -21,6 +21,8 @@ Newest phase last.
 
 ## Phase 2 decisions — proposed
 
+D11–D17 (the label mapping) were **accepted on 2026-10-26** together with the label review below; the rest of this section remains proposed.
+
 ### Data and labels
 
 | # | Decision | Reason | Config |
@@ -59,3 +61,47 @@ Newest phase last.
 | D32 | Files added beyond the spec's tree: `src/data/label_rules.py`, `scripts/review_label_mapping.py`, `tests/test_config.py` and `docs/*`. | Pure rule logic is kept apart from I/O, which makes it unit-testable. The spec (§5) requires a mapping review step. | `MANIFEST.md` |
 | D33 | `requirements.txt` pins the versions installed and tested locally. torch is installed first from the CPU index. In Colab the preinstalled CUDA torch is kept. | Pins are reproducible, and pyproject keeps compatible version ranges. Colab compatibility gets checked in Phase 8. | `requirements.txt` |
 | D34 | The skill vocabulary (185 skills) covers every mapped field, not only tech. Terms of three characters or fewer match case-sensitively, and ambiguous names (R, Go, C) match only through aliases. | Most resumes in this dataset are non-technical. Short terms such as "AP", "PR" and "UI" would otherwise match ordinary words. | `skills.yaml` |
+
+## Phase 3 decisions — proposed
+
+| # | Decision | Reason | Where |
+|---|---|---|---|
+| D35 | **BM25 scores come from a precomputed sparse (job × term) weight matrix**, built from `rank_bm25.BM25Okapi`'s own statistics (IDF with its epsilon floor, document lengths, average length). A test checks that the scores match `BM25Okapi.get_scores` to within 1e-12. | `get_scores` loops in Python over every query token and every document: about 700 tokens × 10,000 jobs per resume. That would make evaluation (484 resumes) and hard-negative mining (1,740 resumes) take hours. The sparse product gives identical scores in milliseconds. | `src/retrieval/bm25.py` |
+| D36 | BM25 never returns jobs with a score of 0, so a query can return fewer than *k* jobs. Ties are broken by corpus order (sorted `job_id`). | A job sharing no term with the resume has no BM25 evidence. Padding the list with arbitrary zero-score jobs would distort recall. | `BM25Retriever.search` |
+| D37 | The BM25 index is saved as `weights.npz` and JSON files, not as a pickle. This supersedes `bm25.pkl` in ARCHITECTURE §8. | Avoids unpickling, and the files can be inspected. | `artifacts/indexes/bm25/` |
+| D38 | A model's fingerprint is the sha256 of its weights (parameter names, shapes and bytes). | One definition that works for Hub models and local fine-tuned checkpoints. It changes whenever the weights change. | `BiEncoder.fingerprint` |
+| D39 | Added files: `src/errors.py` (shared exceptions, re-exported where ARCHITECTURE puts them), `src/retrieval/types.py` (result dataclasses, re-exported by `pipeline.py`), `src/data/prepare.py` (steps 1–4), and tests `test_utils.py` and `test_data_validation.py`. | Avoids circular imports between the retrievers and the pipeline. Keeping orchestration in `src/` makes the whole raw → processed flow testable on synthetic files. The scripts stay thin. | `MANIFEST.md` |
+| D40 | Smoke-test runs write to separate folders (`data/processed_smoke/`, `artifacts/indexes_smoke/`). The smoke job sample cycles round-robin over every family (`rare_family_max_jobs: 1000000`), and the label support threshold drops to 1. | A smoke run must never overwrite full artifacts. A uniform 200-job sample would leave most categories with no positives. | `smoke_test:` blocks in `data.yaml`, `labels.yaml`, `retrieval.yaml` |
+| D41 | **Restart semantics.** `prepare_data` is skipped when the sha256 of the raw files and the hashes of `data.yaml` and `labels.yaml` match the manifest. Code changes are *not* fingerprinted, so run with `--force` after changing processing code. An index is reused only when the corpus fingerprint, model fingerprint and settings all match. | Hashing the inputs is exact and cheap (about 2 s). Fingerprinting code would rebuild on every commit. | `src/data/prepare.py`, `build_index` |
+| D42 | CSV files are read with all columns, and the wanted ones are selected afterwards. | Found by a test: with `usecols`, pandas silently accepts lines that have extra fields instead of reporting them as malformed. | `src/data/ingest.read_table` |
+| D43 | Short or empty job descriptions are dropped **before** deduplication. That leaves 13,989 jobs after dedup; the Phase 2 preview, which deduplicated first, gave 14,070. | Stub postings should not win dedup ties against a full copy. | `src/data/prepare.py` |
+| D44 | Near-duplicate *jobs* (1,348 pairs at cosine ≥ 0.95, in 341 groups) are kept in the corpus and reported. | These are mostly reposts with small edits, such as different locations. Removing them would change the corpus on a fuzzy threshold. The README must note that a ranking can contain near-identical postings. | `near_duplicates_jobs.parquet` |
+| D45 | The split falls back to unstratified, group-aware folds, with a logged warning, only when every category is smaller than the number of folds. | sklearn 1.9 refuses to stratify in that case. It only happens on smoke subsets of about 2 resumes per category. The full data is always stratified (a test checks this). | `src/data/split.py` |
+| D46 | Queries go through the same `clean_text` and resume template as the corpus. Empty or whitespace-only input raises `EmptyInputError`. | Keeps the query and the corpus consistent, and covers spec §7 on empty input. | `MatchingPipeline.prepare_query` |
+
+## Phase 3 label review — accepted by the user on 2026-10-26
+
+`configs/labels.yaml` is now `status: approved` (version 2). Counts below compare the old and new
+mapping **on the same corpus** (the new one), so they isolate the effect of the mapping change.
+
+| # | Decision | Effect (grade 2 / grade 1 / uncertain, old → new) |
+|---|---|---|
+| D47 | **CONSULTANT is graded on title alone** (consulting family has no corroborating codes). Only 18% of consultant postings carry CNSL. | 75 / 572 / 79 → **270** / 347 / 0 |
+| D48 | **Clearly clinical titles are graded on title alone.** A new `clinical_care` family (nurses, physicians, therapists, dentists, pharmacists, paramedics; recruiter, sales, billing and coding titles excluded) becomes a second primary family of HEALTHCARE. Broader healthcare titles keep code corroboration. | 727 / 359 / 42 → **750** / 336 / 42. Only 23 jobs move: most of the 145 remaining mismatches are non-clinical healthcare titles (patient access, pharmacy, medical billing). One stray was promoted: "Physician Group Negotiator". |
+| D49 | **FITNESS gets related families** `rehab_wellness` (athletic trainers, PT/OT aides and assistants) and `leisure_recreation` (resort, spa, club, aquatics). Athletic trainer moves from fitness (grade 2) to rehab_wellness (grade 1). | 25 / 0 / 0 → **21** / 39 / 0. Grade 2 *drops* by the 4 athletic-trainer jobs, leaving FITNESS 1 above the support floor of 20. A stray became related: "Line Cook – KOA Resort". |
+| D50 | **BD-type titles count as BUSINESS-DEVELOPMENT grade 2**: account executive and sales-development rep (the SDR/BDR synonym), alongside business development and partnerships. General sales stays related. | 116 / 1,459 / 636 → **228** / 1,345 / 638. SALES is unchanged (689 grade 2). |
+| D51 | **AVIATION lists maintenance titles explicitly** (A&P, airframe and powerplant, aircraft maintenance, avionics technician) and makes `automotive` and a new `maintenance_repair` family related. Aircraft titles are excluded from `automotive`. | 49 / 379 / 0 → **49** / 663 / 0. No new grade-2 jobs: every aircraft-maintenance posting in the corpus was already matched, so the corpus simply has few of them. AUTOMOBILE correctly loses 3 aircraft mechanics (137 → 134). |
+| D52 | ARTS and PUBLIC-RELATIONS are **kept as is** and documented as known limitations in the README, together with the IT/SALES uncertainty, ENGINEERING → software, AUTOMOBILE/BPO resume noise and the ADVOCATE/APPAREL stray matches. Per-resume headline routing is future work. | – |
+
+**Side effect on the corpus.** The new families are rare mapped families, so they are now sampled
+in full. Because the remaining budget is a seeded uniform draw, changing the rare set reshuffles that
+draw: only 7,570 of the 10,000 jobs are shared with the previous corpus. The corpus fingerprint changed
+(`3ca58170…` → `e3af3361…`), and both indexes were rebuilt. The resume splits are unaffected.
+
+### Follow-up — accepted by the user on 2026-10-26 (labels.yaml version 3)
+
+| # | Decision | Effect |
+|---|---|---|
+| D53 | **The job sampler is stable.** A job's sampling priority is `sha256(seed:job_id)`, so it depends only on its own ID. Rare-family jobs are kept in full, and the rest of the budget goes to the jobs of lowest priority, which is equivalent to a seeded uniform draw. Round-robin mode and the smoke-test resume subsample use the same priorities. This supersedes the RNG draw described under "Side effect on the corpus" above. | A mapping change now moves only the affected jobs plus as many marginal fill jobs (tested). On the real data, the v2 → v3 mapping change moved **4 of 10,000** jobs. Switching algorithms was a one-off reshuffle (7,632 jobs shared with the v2 corpus); fingerprint `e3af3361…` → `31b06e0e…`. Resume splits are identical row for row (all 2,418). |
+| D54 | **`leisure_recreation` (related to FITNESS) is restricted to fitness-type titles.** A title must have a recreation/aquatics/wellness/spa/gym/fitness role word, or such a word together with a resort or club venue. Cook, chef, kitchen, food, server, bartender and housekeeping titles are excluded. | Matches in the corpus fall from 22 to 10 genuine roles. "Line Cook – KOA Resort" and "Front Desk Hospitality – KOA Resort" are no longer related to FITNESS. FITNESS: 21 grade 2, 24 grade 1. |
+| D55 | **Titles containing "negotiator" are excluded from both healthcare families**, so they can never be HEALTHCARE grade 2. | "Physician Group Negotiator" drops from grade 2 to grade 1 (`code_only` through its HCPR code). FITNESS (21 grade-2 jobs) and AVIATION (49) are accepted as thin and listed in the README's known limitations. |

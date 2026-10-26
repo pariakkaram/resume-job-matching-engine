@@ -3,6 +3,7 @@ data/raw/
 
 # Generated data. data/labels/ is committed only for manual judgments (IDs and grades, no text).
 data/processed/
+data/processed_smoke/
 data/labels/labeling_pool.csv
 data/labels/labeling_pool_key.csv
 data/labels/llm_judgments.csv

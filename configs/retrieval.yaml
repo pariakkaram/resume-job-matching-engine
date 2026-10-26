@@ -60,6 +60,10 @@ systems:
     rerank: true
 
 smoke_test:
+  bm25:
+    index_dir: indexes_smoke/bm25   # never overwrite the full indexes
+  faiss:
+    index_dir: indexes_smoke
   top_k_retrieve: 20
   top_k_final: 5
   biencoder:

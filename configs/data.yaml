@@ -95,9 +95,11 @@ split:
   seed: 42
 
 smoke_test:
+  paths:
+    processed_dir: processed_smoke   # never overwrite the full processed data
   sampling:
     n_jobs: 200
-    rare_family_max_jobs: 10
+    rare_family_max_jobs: 1000000    # every family counts as rare -> round-robin over families
   resumes:
     max_rows: 50     # stratified by category, seeded
   dedup:

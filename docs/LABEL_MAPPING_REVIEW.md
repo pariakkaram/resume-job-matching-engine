@@ -1,8 +1,8 @@
 # Label mapping review
 
-Generated 2026-10-25 18:15 UTC by `scripts/review_label_mapping.py` from `configs/labels.yaml` (status: proposed) and the files in `data/raw/`. Every number below was computed from the data; regenerate after editing the config.
+Generated 2026-10-26 03:38 UTC by `scripts/review_label_mapping.py` from `configs/labels.yaml` (status: approved) and the files in `data/raw/`. Every number below was computed from the data; regenerate after editing the config.
 
-- Jobs after preview dedup: 14070; with at least one family: 10630; with several: 1734.
+- Jobs after preview dedup: 14070; with at least one family: 10786; with several: 2631.
 - Categories with fewer than 20 grade-2 jobs: AGRICULTURE (excluded) (10).
 - Categories in the data but missing from the config: none.
 
@@ -16,7 +16,7 @@ Generated 2026-10-25 18:15 UTC by `scripts/review_label_mapping.py` from `config
 | APPAREL | 97 | included | apparel_fashion | retail, design |
 | ARTS | 103 | included | arts | teaching, design, digital_media |
 | AUTOMOBILE | 36 | included | automotive |  |
-| AVIATION | 117 | included | aviation | engineering |
+| AVIATION | 117 | included | aviation | engineering, automotive, maintenance_repair |
 | BANKING | 115 | included | banking | finance, accounting |
 | BPO | 22 | included | customer_service | operations_management |
 | BUSINESS-DEVELOPMENT | 120 | included | business_development | sales, marketing, consulting |
@@ -27,8 +27,8 @@ Generated 2026-10-25 18:15 UTC by `scripts/review_label_mapping.py` from `config
 | DIGITAL-MEDIA | 96 | included | digital_media | marketing, public_relations, design |
 | ENGINEERING | 118 | included | engineering | software_it, project_management, manufacturing_production |
 | FINANCE | 118 | included | finance | accounting, banking |
-| FITNESS | 117 | included | fitness |  |
-| HEALTHCARE | 115 | included | healthcare | social_services_advocacy |
+| FITNESS | 117 | included | fitness | rehab_wellness, leisure_recreation |
+| HEALTHCARE | 115 | included | clinical_care, healthcare | social_services_advocacy |
 | HR | 110 | included | hr |  |
 | INFORMATION-TECHNOLOGY | 120 | included | software_it | data_analytics, project_management |
 | PUBLIC-RELATIONS | 111 | included | public_relations | marketing, digital_media |
@@ -38,39 +38,43 @@ Generated 2026-10-25 18:15 UTC by `scripts/review_label_mapping.py` from `config
 
 ## 2. Random sample of 36 job titles (seed 0)
 
-Store Receiver - Part Time [-]; Director of eCommerce Website Product Management & Optimization [digital_media]; SailPoint IDN Engineer (Contract) [-]; Certified Caregiver [healthcare]; Manager, Technical Accounting [accounting]; Senior UX Researcher, Pixel [design]; Relationship Banker - Stamford Downtown Financial Center - Stamford, CT [finance, banking]; Director of Wire Harness Engineering (Automotive) [automotive]; Director Project Finance [finance]; Junior Groomer [-]; Data Engineer [data_analytics]; Assistant Store Manager [retail]; Validation Engineer (Onsite) [engineering]; Director of FP&A [finance]; Staff Accountant [accounting]; IT Support Engineer I, IT Services [software_it]; Day Porter Lead [-]; Network Administrator [software_it]; Janitorial Worker [-]; Principal Data Architect [data_analytics]; Senior Information Security Analyst [software_it]; Lead Software Engineer [software_it]; Product Owner III (Contractor) [project_management]; Assistant Manager(07462) - 9310 S Eastern Ave [-]; Associate Attorney [legal]; Mental Health Clinician [healthcare]; Project Manager [project_management]; OTR Driver - Kansas City, Kansas [logistics_warehouse]; Travel MedSurg RN in Durham, NC - Make $2221.40/week [healthcare]; Linux Engineer [software_it]; Dispatcher [logistics_warehouse]; Junior Project Developer [software_it]; IT Service Desk Manager [software_it]; Luxury Sales Professional [sales]; Lead Systems Engineer [software_it, engineering]; Senior Program Protection Planning and Security Support [software_it]
+Store Receiver - Part Time [-]; Director of eCommerce Website Product Management & Optimization [digital_media]; SailPoint IDN Engineer (Contract) [-]; Certified Caregiver [healthcare]; Manager, Technical Accounting [accounting]; Senior UX Researcher, Pixel [design]; Relationship Banker - Stamford Downtown Financial Center - Stamford, CT [finance, banking]; Director of Wire Harness Engineering (Automotive) [automotive]; Director Project Finance [finance]; Junior Groomer [-]; Data Engineer [data_analytics]; Assistant Store Manager [retail]; Validation Engineer (Onsite) [engineering]; Director of FP&A [finance]; Staff Accountant [accounting]; IT Support Engineer I, IT Services [software_it]; Day Porter Lead [-]; Network Administrator [software_it]; Janitorial Worker [-]; Principal Data Architect [data_analytics]; Senior Information Security Analyst [software_it]; Lead Software Engineer [software_it]; Product Owner III (Contractor) [project_management]; Assistant Manager(07462) - 9310 S Eastern Ave [-]; Associate Attorney [legal]; Mental Health Clinician [healthcare]; Project Manager [project_management]; OTR Driver - Kansas City, Kansas [logistics_warehouse]; Travel MedSurg RN in Durham, NC - Make $2221.40/week [clinical_care, healthcare]; Linux Engineer [software_it]; Dispatcher [logistics_warehouse]; Junior Project Developer [software_it]; IT Service Desk Manager [software_it]; Luxury Sales Professional [sales]; Lead Systems Engineer [software_it, engineering]; Senior Program Protection Planning and Security Support [software_it]
 
 ## 3. Job families
 
-10630 of 14070 jobs (75.6%) match at least one family; 1734 (12.3%) match more than one.
+10786 of 14070 jobs (76.7%) match at least one family; 2631 (18.7%) match more than one.
 
 | Family | Jobs | Corroborating codes | Most common codes | Used by |
 |---|---|---|---|---|
 | software_it | 1583 | IT | IT 79%, ENG 35%, SALE 3%, OTHR 3% | ENGINEERING (R), INFORMATION-TECHNOLOGY (P) |
 | data_analytics | 355 | ANLS, IT | IT 66%, ENG 26%, ANLS 14%, RSCH 6% | INFORMATION-TECHNOLOGY (R) |
 | engineering | 621 | ENG, QA | ENG 72%, IT 52%, MNFC 14%, MGMT 9% | AVIATION (R), CONSTRUCTION (R), ENGINEERING (P) |
-| healthcare | 1474 | HCPR | HCPR 70%, OTHR 11%, IT 5%, RSCH 4% | HEALTHCARE (P) |
+| clinical_care | 754 | (none) | HCPR 85%, OTHR 8%, MGMT 3%, MNFC 2% | HEALTHCARE (P) |
+| healthcare | 1473 | HCPR | HCPR 70%, OTHR 11%, IT 5%, RSCH 4% | HEALTHCARE (P) |
 | sales | 1030 | BD, SALE | SALE 83%, BD 67%, OTHR 6%, CUST 4% | BUSINESS-DEVELOPMENT (R), SALES (P) |
-| business_development | 135 | BD, SALE | BD 69%, SALE 69%, MRKT 9%, CNSL 6% | BUSINESS-DEVELOPMENT (P), SALES (R) |
+| business_development | 254 | BD, SALE | SALE 76%, BD 76%, MRKT 8%, IT 5% | BUSINESS-DEVELOPMENT (P), SALES (R) |
 | customer_service | 283 | CUST | OTHR 43%, CUST 16%, SALE 12%, MGMT 6% | ADVOCATE (R), BPO (P), SALES (R) |
 | accounting | 719 | ACCT, FIN | ACCT 81%, FIN 66%, HR 4%, ADM 4% | ACCOUNTANT (P), BANKING (R), FINANCE (R) |
 | finance | 488 | ACCT, FIN | FIN 72%, SALE 37%, ACCT 30%, IT 8% | ACCOUNTANT (R), BANKING (R), FINANCE (P) |
 | banking | 186 | FIN | FIN 61%, SALE 57%, BD 10%, MGMT 9% | ACCOUNTANT (R), BANKING (P), FINANCE (R) |
 | hr | 350 | HR | HR 74%, SALE 9%, IT 7%, BD 7% | HR (P) |
-| consulting | 270 | CNSL | IT 39%, SALE 33%, CNSL 18%, BD 11% | BUSINESS-DEVELOPMENT (R), CONSULTANT (P) |
+| consulting | 270 | (none) | IT 39%, SALE 33%, CNSL 18%, BD 11% | BUSINESS-DEVELOPMENT (R), CONSULTANT (P) |
 | construction | 334 | (none) | MGMT 55%, MNFC 51%, PRJM 17%, OTHR 13% | CONSTRUCTION (P) |
 | marketing | 284 | ADVR, MRKT, PR | MRKT 69%, SALE 54%, BD 9%, IT 6% | BUSINESS-DEVELOPMENT (R), DIGITAL-MEDIA (R), PUBLIC-RELATIONS (R) |
 | digital_media | 211 | ADVR, ART, MRKT, PR, WRT | MRKT 64%, SALE 34%, WRT 25%, PR 21% | ARTS (R), DESIGNER (R), DIGITAL-MEDIA (P), PUBLIC-RELATIONS (R) |
 | public_relations | 65 | MRKT, PR, WRT | MRKT 69%, PR 54%, WRT 43%, SALE 17% | DIGITAL-MEDIA (R), PUBLIC-RELATIONS (P) |
 | legal | 222 | LGL | LGL 86%, ADM 5%, GENB 3%, CNSL 3% | unmapped (negatives only) |
 | social_services_advocacy | 116 | (none) | OTHR 55%, HCPR 22%, CUST 6%, MGMT 5% | ADVOCATE (P), HEALTHCARE (R) |
-| automotive | 140 | (none) | MNFC 54%, MGMT 51%, ENG 16%, OTHR 12% | AUTOMOBILE (P) |
+| automotive | 137 | (none) | MNFC 55%, MGMT 53%, ENG 14%, OTHR 12% | AUTOMOBILE (P), AVIATION (R) |
 | design | 208 | ART, DSGN | DSGN 62%, IT 58%, ART 53%, ENG 17% | APPAREL (R), ARTS (R), DESIGNER (P), DIGITAL-MEDIA (R) |
 | teaching | 201 | EDU, TRNG | EDU 64%, TRNG 50%, OTHR 11%, HCPR 9% | ARTS (R), TEACHER (P) |
 | culinary | 133 | (none) | MGMT 85%, MNFC 73%, OTHR 8%, GENB 5% | CHEF (P) |
 | hospitality | 195 | (none) | MGMT 75%, MNFC 70%, OTHR 9%, IT 8% | CHEF (R) |
-| fitness | 25 | (none) | OTHR 52%, MGMT 16%, HCPR 16%, SALE 12% | FITNESS (P) |
+| fitness | 21 | (none) | OTHR 48%, MGMT 19%, SALE 14%, HCPR 14% | FITNESS (P) |
+| rehab_wellness | 17 | (none) | HCPR 71%, OTHR 29% | FITNESS (R) |
+| leisure_recreation | 12 | (none) | OTHR 42%, HCPR 25%, MGMT 8%, MNFC 8% | FITNESS (R) |
 | aviation | 49 | (none) | IT 41%, ENG 33%, MNFC 31%, MGMT 27% | AVIATION (P) |
+| maintenance_repair | 226 | (none) | MNFC 68%, MGMT 60%, IT 20%, ENG 12% | AVIATION (R) |
 | agriculture | 10 | (none) | DSGN 30%, IT 20%, RSCH 20%, CNSL 20% | unmapped (negatives only) |
 | apparel_fashion | 108 | (none) | SALE 58%, MRKT 30%, MGMT 14%, IT 13% | APPAREL (P) |
 | retail | 333 | CUST, SALE | SALE 68%, BD 43%, MGMT 14%, OTHR 14% | APPAREL (R), SALES (R) |
@@ -89,9 +93,10 @@ Store Receiver - Part Time [-]; Director of eCommerce Website Product Management
 - **software_it**: Computer Science Curriculum Designer, Alpha - an EDU Startup (Remote) - $100,000/year USD; Intern - DRAM Cloud Engineer; Quality Application Engineer; Frontend Web Developer (Machine Learning); Senior Computer Network Support Specialist; Kitting & Packaging Coordinator, SAP; Industrial Programmer; Senior Java Fullstack developer; Infrastructure Architect; Unreal Engine 4 Programmer; Java Consultant; System Integration Engineer
 - **data_analytics**: Data Analytics Consultant; Manager II, Machine Learning; Manager, Audience Analytics; Senior Data Scientist - Algorithms; Data architect/Data analyst; Data Scientist; Data Analyst; Data Analyst; Contractor-Laboratory Capabilities, Clinical Data Management (Consultant); AI District 23 - Store Hourly; Data Governance Specialist; Data Scientist / Operations Research Analyst
 - **engineering**: Imaging Engineering Specialist II; Senior Test Engineer; Quality Engineer III; Senior Director of Engineering; Water Process Engineer; Associate Test Engineer; On-Site Project Engineer; DWDM Test Engineer; Senior Civil Engineer; Chief Systems Engineer; Systems Engineer; Mechanical Engineer
-- **healthcare**: Pharmaceutical Sales Specialist - R&I Primary Care (Raleigh NC); Surgery Scheduler; CNA - On-Call; Physician Assistant or Nurse Practitioner (APRN) - Clinical Lead / Cardiology Norwich Salem; Medical Collector (Major Medical Benefit Claims); Physical Therapist - Eligible Orthopaedic Resident; Inpatient Therapy Technician (CNA), Per Diem Day Shift, Inpatient Rehabilitation; Radiology Technologist; Surgical Technologist; Director of Nursing; Psychiatrist Needed for Locums Coverage at Facility in Dallas, Texas; Optometrist
+- **clinical_care**: Dentist; Psychiatrist; Physical Therapist Assistant Home Health; Pharmacist; Clinical Nurse Manager; Psychiatrist, Principal Investigtor; Nursing Assistant Registered - Medical; Quality Improvement RN; Nursing Assistant -4th Floor/Ortho-Post Op; RN - Cardiac Stepdown; Occupational Health Nurse Manager; Pharmacist
+- **healthcare**: Veterinary Clinic Assistant; Primary Care Practice Administrator I; Therapist; Primary Care Physician; Medical Credentialing Specialist ; Physical Therapist - Eligible Orthopaedic Resident; CNA - Medical; Nurse Assistant - MSMain Med/Surg - Per Diem/Pool Tier III, Day Shift (St. Mary); Emergency Medicine Physician Available in Phoenix; Hospitalist; Registered Dental Hygienist; Patient Care Technician - Neuroscience RB7
 - **sales**: Commodity Sales & Sourcing Specialist- Remote; Hospitality Sales & Event Specialist; Associate Director, Commerce Media (Sales); Sales Manager; Business Development Manager - Outside Sales; Salesperson; Account Executive; Store Sales Associate; REMOTE STEEL BUILDING SALES MAKE $1,000 TO $3000 TO $10,000 PER ORDER!; Bilingual Account Manager (Mandarin); Regional Sales Manager, UK; District Sales Manager, Oklahoma
-- **business_development**: Director, Business Development (West Coast); Associate Director of Corporate Partnership Relations; Business Development Representative; Director of Business Development; Food Production Manager, New Business Development; Business Development Manager; Business Development Manager; Director of Business Development; Business Development Manager; DEVELOPMENT AND PARTNERSHIPS INTERN; Business Development Representative; Director of Business Development
+- **business_development**: Regional Account Executive - Austin; Partnerships Manager; Assistant Account Executive, Corporate Affairs (Hybrid Work Structure); Sales Development Representative; Business Development Representative (French Speaking); PRIVATE LABEL ACCOUNT EXECUTIVE; Senior Account Executive; Enterprise Account Executive; Associate Director of Corporate Partnership Relations; Account Executive; Senior Account Executive; Account Executive - Special Risk
 - **customer_service**: Client Care Center Specialty Care- Spanish Care (English/Spanish); Customer Service Consultant; Principal Program Manager, Customer Service by Amazon; Client Service Partner, Conferences; Customer Success Director; Client Service Associate*; Supervisor, IS Client Support; Customer Service Representative; Enterprise, Strategic Customer Success Manager; Call Center Representative; Customer Service Representative (Remote Possible); Client Services Associate
 - **accounting**: Senior Accountant - Record to Report; Staff Accountant; Audit Intern - Winter 2025; Accounting Manager ; Billing Representative II (A/R) - Central Billing Office *Onsite - Las Vegas, NV*; Payroll Coordinator- Available ASAP; Controller; Accounts Payable Processor; Senior Manger General &amp; Technical Accounting - B&amp;T; Plant Accountant; Sr Accounting Manager; Audit Senior Associate | Investment Companies
 - **finance**: Financial Services Representative; SAP Central Finance Technical; Quantum FIS Treasury; Financial Advisor - Entry Level (2024); Controller; IPV/Valuations Manager, Investment Bank; Relationship Banker - Douglas Centre Financial Center - Coral Gables, FL - Spanish Language Required; Administrative and Financial Coordinator; Senior Financial Analyst; Oracle Finance Functional Consultant; Financial Crimes Investigator Sr - GA AL TN SC FL - Remote; Research And Administrative Assistant (Hedge Fund)
@@ -104,13 +109,16 @@ Store Receiver - Part Time [-]; Director of eCommerce Website Product Management
 - **public_relations**: Internal Communications Specialist; Marketing And Public Relations Intern; Public Relations Account Director: Emerging Technology & Consumer Finance; Corporate Communications Manager; Logistics Communications Manager, Sr. - LAX Airport; Head of Communications; Digital Design Communication Specialist; Communications Manager; Sr. Media Relations Specialist; Senior Marketing Communications Manager; MARKETING AND COMMUNICATIONS MANAGER; Public Relations Account Executive
 - **legal**: Paralegal; Legal Secretary; Paralegal; Associate Attorney (New Orleans); Senior Litigation Attorney/Special Assistant Attorney General/Government Litigation #13867; Employment Litigation Associate; Paralegal; Business & Trademark Attorney; Board and Legal Specialist; Real Estate Paralegal; Attorney, Self-Help Services; Legal Billing Specialist
 - **social_services_advocacy**: Lead Housing Coordinator; Industrial Base Outreach Analyst; Family Services Intake Clinician- Part Time; Case Worker, Crisis Intervention; Remote Licensed Clinical Social Worker - Ohio; Registered Nurse Case Manager; Case Manager Assistant; Educational Assistant, Functional Life Skills; Residential Youth Specialist; Customer Advocate; Outreach and Recruiting Specialist; Social Services Attorney
-- **automotive**: Investment Banking Vice President | Automotive M&A; Diesel Technician/Mechanic III - Entry Level; Diesel Mechanic Position Now Open!!!!!; Fleet & Equipment Specialist; NO 1 Auto Machine Mechanic; Automotive Installer; Automotive Parts Specialist; Design Engineer- Automotive Parts manufacturer (33778); SALES MANAGER - (Automotive Tier 1); (Night Shift) Maritime Diesel Engine Analyst; Lead Diesel Technician; Dealership Operations Manager
+- **automotive**: Automotive Installer; (Night Shift) Maritime Diesel Engine Analyst; Diesel Mechanic; Maintenance Mechanic; Automotive Technician - BMW Pembroke Pines; Field Claims Adjuster - Auto Damage; Automotive Test Engineer / Automotive Validation Engineer; Account Development Executive - Automotive Software; Sr. Engineering Manager, Vehicle; Automotive Quality Engineer; Diesel Technician/Mechanic III - Entry Level; Vehicle Readiness Specialist
 - **design**: Head of Visual Design Operating Systems; Creative Designer; UI Web Architect; Interior Designer Project Manager; Senior Product Designer; UI/UX Designer; UI Angular Developer; Mid-Level Civil BIM Designer; Lead Landscape Designer/Architect; Junior Art Director; Digital Designer; EWP Drafter Truss Design
 - **teaching**: Mathematics Teacher; Associate Teacher; Salmon Bay K-8 - Special Education Teacher - 0.5 FTE; Academic Coach, Trilogy (Remote) - $30,000/year USD; High School Social Studies Teacher; Wellness Instructor; Middle School English Language Arts Teacher; Classroom Teacher; Lead Preschool Teacher; Assistant Professor; Seasonal School Events Associate; Faculty Group Practice Ultrasound Technologist - **Per Diem - Obs/Gyn/MFM experience highly preferred**
 - **culinary**: Cook; Cook III; Line Cook; Food Service Worker; GUCCI Pastry Cook Osteria da Massimo Bottura - Beverly Hills; Restaurant Crewmember - Cook, Cashier, and Customer Service; Dishwasher; Bakery Specialist - JVSS10 - Fry/Clay - Part-Time; Dishwasher; Kitchen Supervisor; Baker FT; Kitchen Aide  
 - **hospitality**: In-Room Dining Server; Restaurant Manager - DraftKings Sports & Social Troy, MI; Director of Food And Beverage; Hourly Restaurant Manager; Bartender - Union Tavern; LTC Sr. Restaurant Associate (PDI); Host for the Restaurant + Bar; Restaurant Manager; Waiter/Server; Food Runner; Hospitality Concierge - Womens Health *Per Diem*; Assistant General Manager, MTC Dining - 126042
-- **fitness**: Wellness Coach; Fitness Studio Manager | Culver City, CA; Permanent Staff Athletic Trainer job in Brunswick, GA - Make $21/hour; Exercise Physiologist; Fitness Trainer; Fitness Trainer; Customer Service Representative, Fitness (Remote, $15/hour); Coach Swim; Fitness Manager; Athletic Trainer - Per Diem; Personal Trainer; Group Fitness Instructor
+- **fitness**: Recreational Gymnastic Coach; Recreation Attendant - $17 /hour; Coach Swim; Personal Trainer; Retail Sales Associate Bikes & Fitness; Fitness Trainer; Exercise Physiologist; Fitness Trainer; Boutique Fitness Studio Manager | Riverton, UT; Fitness Manager; Fitness Studio Manager ; Fitness Studio Manager | Culver City, CA
+- **rehab_wellness**: Physical Therapist Assistant; Athletic Trainer - Per Diem; Physical Therapist Assistant Home Health; Rehab Aide - Physical Therapy Ortho; Certified Occupational Therapy Assistant; Occupational Therapy Assistant; Physical Therapist Assistant; Physical Therapist Assistant - Inpatient Rehab/Acute Care; Physical Therapist Assistant, PTA - Full Time; Physical Therapist Assistant Home Health Per Diem; Physical Therapy Aide; Athletic Trainer - PRN
+- **leisure_recreation**: Recreation Attendant - $17 /hour; Benefits & Wellness Manager; Group Fitness Instructor; Wellness Instructor; Exercise Specialist/Wellness Instructor I OR Athletic Trainer I - Wheatlyn Rehab; Spa Director; Health Fitness Specialist; Aquatics Assistant Leader; Fitness Manager; Resident Wellness Manager / Registered Nurse; Wellness Associate; Spa Supervisor
 - **aviation**: Mechanical Design Engineer (Aerospace Exp.); Aerospace VP of Sales and Marketing; Office Engineer II - Airport Operational Readiness - Training Coordinator - LAX Airport; Airport EOC Network Administrator (D); Airport Manager- Insider Threat Program; Operations Manager (STL Airport); Avionics Systems Engineer; Helicopter Float Pilot - HAA; Challenger 604 First Officer; Aerospace Structural Design Engineer; Pilot; Airport Manager- Emergency Management Trainer
+- **maintenance_repair**: Maintenance Technician II; Fleet Maintenance Supervisor; Field Service Technician I; Maintenance Technician - Liberty Bay Club; Machine Maintenance Manager; Diesel Mechanic - 2nd Shift - Tool Allowance; Maintenance Technician, Multifamily; Maintenance Technician; Maintenance Technician; Maintenance Manager; Maintenance Technician- Huntsville; Automotive Maintenance Technician / General Service Technician
 - **agriculture**: Senior Crop Specialist; Forester - Multiple Vacancies; Lead Landscape Designer/Architect; Grower Enrollment Specialist; Forestry Technician/ Inventory Forester; Landscape Designer; Landscape Architect; Commercial Landscape Superintendent; VP of Grain; Landscape Manager at Refined Gardens
 - **apparel_fashion**: Apparel Sales Outfitter; Marketing Merchandising Manager; Full-time Nabisco Sales Service Representative/Merchandiser Order Writer; Beauty Advisor; Product Location Merchandiser; Seasonal Retail Sales Associate, Northridge Fashion Center; Apparel Sales Representative - Clarksville & Hendersonville Tennessee; Merchandise and Service Coordinator; Part-Time Beauty Advisor - Sephora; Retail Merchandise Processor - PT; Anthropologie Weddings Stylist Part-Time; Retail Sales Associate Footwear
 - **retail**: Retail Associate; Assistant Deli Manager; Retail Store Manager; Store Manager (Boston Area); 10161 - Retail Cashier; Cashier & Front End Services; Urban Outfitters Key Holder Part-Time; Director of Retail Operations, Full time (Oberlin College) $65k/year!; Restaurant Crewmember - Cook, Cashier, and Customer Service; Free People Key Holder Part-Time; Retail Sales Associate, Santa Rosa Plaza - Part Time; Seasonal Retail Sales Associate - Footwear
@@ -124,69 +132,69 @@ Store Receiver - Part Time [-]; Director of eCommerce Website Product Management
 - **security_public_safety**: Security Officer | Overnight ; Police Validations Specialist; Business Information Security Officer - GCS; Security Officer; Security Officer, Evening Shift, Security Services; Security Officer I; Security Officer 2 - Taylor; Public Safety Applications Sales Representative (FL/GA); Asset Protection / Loss Prevention (LP) Investigator / Associate - Saks Fifth Avenue; Armed Maritime Security Officer; Police Services Specialist; Part-Time Loss Prevention Associate
 - **real_estate_insurance**: Insurance Defense Attorney - 100% Remote; Real Estate Investment Analyst; Assistant Property Manager - $1,500 Sign-On Bonus; Assistant Property Manager; Property Field Claims Adjuster (Fox Valley/Green Bay, WI); Assistant Property Manager, Multifamily; Real Estate Paralegal; Multifamily Real Estate Analyst; Assistant Property Manager; Revenue Cycle Claims Specialist-Temp; Claims Specialist; Relief Property Manager
 
-### Most frequent titles with no family (3440 jobs)
+### Most frequent titles with no family (3284 jobs)
 
-maintenance technician (22); business analyst (21); executive director (10); technical writer (9); service technician (9); team member (8); tech 1, installation (8); engineer (7); senior business analyst (7); maintenance supervisor (7); assistant manager (6); facilities manager (6); field service technician (6); manager (6); board certified behavior analyst (bcba) (6); lead service associate (6); field supervisor (5); product analyst (5); transportation manager (5); hair stylist (5); production planner (5); custodian (5); associate (5); quality assurance analyst (5); environment, health and safety manager (4); architect (4); program coordinator (4); operator (4); district manager (4); field technician (4); maintenance manager (4); quality supervisor (4); chief of staff (4); compliance specialist (4); intern (4); installation technician (4); junior groomer (4); porter (4); veterinary assistant (4); quality manager (4); operations intern-summer 2024 (4); member advisor (4); equipment technician (4); office associate (3); grants manager (3); area manager (3); automation technician (3); project assistant (3); technician (3); project control specialist (3); associate veterinarian (3); senior analyst (3); product development manager (3); chief development officer (3); assistant (3); quality assurance engineer (3); collections specialist (3); support engineer (3); operations support specialist (3); industrial maintenance technician (3)
+business analyst (21); executive director (10); technical writer (9); team member (8); tech 1, installation (8); engineer (7); senior business analyst (7); assistant manager (6); facilities manager (6); manager (6); board certified behavior analyst (bcba) (6); lead service associate (6); field supervisor (5); product analyst (5); transportation manager (5); hair stylist (5); production planner (5); custodian (5); associate (5); quality assurance analyst (5); environment, health and safety manager (4); architect (4); program coordinator (4); operator (4); district manager (4); field technician (4); quality supervisor (4); chief of staff (4); compliance specialist (4); intern (4); installation technician (4); junior groomer (4); porter (4); veterinary assistant (4); quality manager (4); operations intern-summer 2024 (4); member advisor (4); office associate (3); grants manager (3); area manager (3); automation technician (3); project assistant (3); technician (3); project control specialist (3); associate veterinarian (3); senior analyst (3); product development manager (3); chief development officer (3); assistant (3); quality assurance engineer (3); collections specialist (3); support engineer (3); operations support specialist (3); central services technician (3); safety manager (3); freelance writer (3); electrical technician (3); demand planner (3); client manager (3); ehs specialist (3)
 
 ### Most common multi-family combinations
 
-accounting + finance (101); sales + retail (72); software_it + data_analytics (67); software_it + engineering (66); software_it + consulting (46); healthcare + science_research (45); marketing + digital_media (43); accounting + hr (37); healthcare + sales (37); construction + project_management (36); healthcare + teaching (34); software_it + project_management (33); healthcare + social_services_advocacy (29); data_analytics + science_research (28); sales + marketing (24)
+clinical_care + healthcare (705); sales + business_development (117); accounting + finance (101); sales + retail (72); software_it + data_analytics (67); software_it + engineering (66); automotive + maintenance_repair (62); software_it + consulting (46); marketing + digital_media (43); healthcare + science_research (42); accounting + hr (37); construction + project_management (36); healthcare + sales (35); software_it + project_management (33); data_analytics + science_research (28)
 
 ## 4. Labels each resume category would receive (full deduplicated corpus, before sampling)
 
 | Category | Resumes | Grade 2 | Grade 1 | Uncertain | Grade 0 (high conf.) | Grade 0 (low conf.) | Sample grade-2 titles |
 |---|---|---|---|---|---|---|---|
-| ACCOUNTANT | 118 | 634 | 792 | 131 | 9229 | 3284 | Senior Accountant; Billing Specialist; Billing Representative III (A/R) - Central Billing Office *Onsite - Las Vegas, NV*; Assistant Controller; Plant Controller; Controller |
-| ADVOCATE | 118 | 116 | 278 | 0 | 10236 | 3440 | Lead Housing Coordinator; Industrial Base Outreach Analyst; Family Services Intake Clinician- Part Time; Case Worker, Crisis Intervention; Remote Licensed Clinical Social Worker - Ohio; Registered Nurse Case Manager |
-| AGRICULTURE (excluded) | 63 | 10 | 284 | 0 | 10336 | 3440 | Senior Crop Specialist; Forester - Multiple Vacancies; Lead Landscape Designer/Architect; Grower Enrollment Specialist; Forestry Technician/ Inventory Forester; Landscape Designer |
-| APPAREL | 97 | 108 | 503 | 0 | 10019 | 3440 | Apparel Sales Outfitter; Marketing Merchandising Manager; Full-time Nabisco Sales Service Representative/Merchandiser Order Writer; Beauty Advisor; Product Location Merchandiser; Seasonal Retail Sales Associate, Northridge Fashion Center |
-| ARTS | 103 | 33 | 699 | 119 | 9870 | 3349 | Usher/Ticket Taker - Uptown Theater (Minneapolis); Public Art Manager; Sports MMJ-Photographer; Senior Illustrator; Corporate Sponsorship Specialist for Nationwide Art Battle Events & TV Show; Senior Gameplay Animator - XDefiant |
-| AUTOMOBILE | 36 | 140 | 0 | 0 | 10490 | 3440 | Investment Banking Vice President \| Automotive M&A; Diesel Technician/Mechanic III - Entry Level; Diesel Mechanic Position Now Open!!!!!; Fleet & Equipment Specialist; NO 1 Auto Machine Mechanic; Automotive Installer |
-| AVIATION | 117 | 49 | 615 | 0 | 9966 | 3440 | Mechanical Design Engineer (Aerospace Exp.); Aerospace VP of Sales and Marketing; Office Engineer II - Airport Operational Readiness - Training Coordinator - LAX Airport; Airport EOC Network Administrator (D); Airport Manager- Insider Threat Program; Operations Manager (STL Airport) |
-| BANKING | 115 | 136 | 1272 | 119 | 9241 | 3302 | Relationship Banker - Woodmoor-Four Corners Financial Center - Rockville/Silver Spring Market - Silver Spring, MD; Senior Commercial Loan Officer; Relationship Banker- Carrboro; Commercial Loan Officer; Vice President of Compliance - The Tennessee Credit Union; Sr Loan Advisor |
-| BPO | 22 | 195 | 366 | 184 | 9974 | 3351 | Customer Success Manager, Woopra; Customer Service Representative; Customer Service Representative; Customer Service Lead; Client Services Associate; Part-Time Patient Service Associate/Patient Access - Brooklyn |
-| BUSINESS-DEVELOPMENT | 120 | 116 | 1926 | 773 | 8214 | 3041 | Business Development Manager; Business Development Manager - Outside Sales; Business Development Representative (French Speaking); Principal, AWS Strategy and Business Development; Business Development Manager; Business Development Manager |
-| CHEF | 118 | 133 | 181 | 0 | 10316 | 3440 | Cook; Cook III; Line Cook; Food Service Worker; GUCCI Pastry Cook Osteria da Massimo Bottura - Beverly Hills; Restaurant Crewmember - Cook, Cashier, and Customer Service |
-| CONSTRUCTION | 112 | 334 | 1104 | 0 | 9192 | 3440 | Supervisor Network Construction; Construction Cost Estimator; Shipyard Estimator and Contracts Administrator ; HVAC Truck Based Sr Controls Technician; Construction Manager; General Laborer |
-| CONSULTANT | 115 | 75 | 782 | 114 | 9710 | 3389 | Technology Consulting Director; Productivity Consultant - Salaried Functions; SAP SD/MM OTC Consultant; Projects Assistant Consultant; Senior IAM Forgerock Consultant; Provider Partner Consultant, DentaQuest ( Baton Rouge, LA) |
-| DESIGNER | 107 | 150 | 392 | 121 | 10058 | 3349 | UX Researcher, Pixel; UI/UX Designer; Junior Graphic Designer; User Experience Design Specialist; ASSOCIATE DESIGNER; Interaction Designer, Google Cloud |
-| DIGITAL-MEDIA | 96 | 172 | 739 | 308 | 9625 | 3226 | Digital Marketing Measurement Analyst  ; Managing Editor; Social Media Manager; Strategic Communications Specialist and Technical Editor; Videographer; EXECUTIVE NEWS PRODUCER (NIGHTSIDE) - WANF |
-| ENGINEERING | 118 | 506 | 2775 | 227 | 7623 | 2939 | Intern- DRAM Design Engineer; Senior Test Engineer; Project Engineer; Test Engineer II; Mechanical Engineer; IT Collaboration Systems Engineer |
-| FINANCE | 118 | 397 | 1029 | 131 | 9229 | 3284 | Management Controller; Patient Financial Specialist; Controller; Controller; Financial Advisor; Investment Officer |
-| FITNESS | 117 | 25 | 0 | 0 | 10605 | 3440 | Wellness Coach; Fitness Studio Manager \| Culver City, CA; Permanent Staff Athletic Trainer job in Brunswick, GA - Make $21/hour; Exercise Physiologist; Fitness Trainer; Fitness Trainer |
-| HEALTHCARE | 115 | 1210 | 529 | 53 | 9018 | 3260 | Patient Account Registrar PD - Admitting; Hospice LPN Liaison ; Ambulatory Nursing Educator; Case Manager III, Group Therapy; Behavioral Health Counselor; MRI Manager |
-| HR | 110 | 275 | 121 | 35 | 10245 | 3394 | Recruiting Strategist; HR Generalist; Compensation Consulting - Engagement Leader; Recruitment Sourcing Specialist; Seasonal Bilingual Talent Acquisition Associate; HR Coordinator - Therma |
-| INFORMATION-TECHNOLOGY | 120 | 1382 | 1781 | 832 | 7435 | 2640 | Sr. Security Engineer , Robotics Security; Data Privacy analyst (NOT ATTORNEY) with 1-3 years of experience ONLY not a BI/technical role please no data architects/developers; Senior Software Engineer, Operations Microsoft .Net (ASP.NET, C#, JavaScript, XML); SAP FICO; Software Development Engineer II, IT Product and Development; Software Engineering Manager |
-| PUBLIC-RELATIONS | 111 | 57 | 584 | 230 | 9903 | 3296 | Communications Manager; Strategic Communications Specialist, Junior; Public Affairs Specialist; Marketing Communications Manager; Sr. Communication Manager; Marketing Communications Specialist - 75484 |
-| SALES | 116 | 967 | 1087 | 793 | 8182 | 3041 | Sales Development Representative - Remote - USA; Account Manager, East Coast; Outside Sales Representative; Financial Advisor - Sales Advisor - Investment Services; Director of Sales, Commerce; Retail Sales Leader Footwear |
-| TEACHER | 102 | 156 | 105 | 52 | 10377 | 3380 | Assistant Professor, Questrom School of Business, Finance; Reading Tutor; Assistant Preschool Director; Classroom Teacher; High School Spanish Teacher; Director, Online Education Programs |
+| ACCOUNTANT | 118 | 634 | 792 | 131 | 9385 | 3128 | Senior Accountant; Billing Specialist; Billing Representative III (A/R) - Central Billing Office *Onsite - Las Vegas, NV*; Assistant Controller; Plant Controller; Controller |
+| ADVOCATE | 118 | 116 | 278 | 0 | 10392 | 3284 | Lead Housing Coordinator; Industrial Base Outreach Analyst; Family Services Intake Clinician- Part Time; Case Worker, Crisis Intervention; Remote Licensed Clinical Social Worker - Ohio; Registered Nurse Case Manager |
+| AGRICULTURE (excluded) | 63 | 10 | 284 | 0 | 10492 | 3284 | Senior Crop Specialist; Forester - Multiple Vacancies; Lead Landscape Designer/Architect; Grower Enrollment Specialist; Forestry Technician/ Inventory Forester; Landscape Designer |
+| APPAREL | 97 | 108 | 503 | 0 | 10175 | 3284 | Apparel Sales Outfitter; Marketing Merchandising Manager; Full-time Nabisco Sales Service Representative/Merchandiser Order Writer; Beauty Advisor; Product Location Merchandiser; Seasonal Retail Sales Associate, Northridge Fashion Center |
+| ARTS | 103 | 33 | 699 | 119 | 10026 | 3193 | Usher/Ticket Taker - Uptown Theater (Minneapolis); Public Art Manager; Sports MMJ-Photographer; Senior Illustrator; Corporate Sponsorship Specialist for Nationwide Art Battle Events & TV Show; Senior Gameplay Animator - XDefiant |
+| AUTOMOBILE | 36 | 137 | 0 | 0 | 10649 | 3284 | Automotive Installer; (Night Shift) Maritime Diesel Engine Analyst; Diesel Mechanic; Maintenance Mechanic; Automotive Technician - BMW Pembroke Pines; Field Claims Adjuster - Auto Damage |
+| AVIATION | 117 | 49 | 902 | 0 | 9835 | 3284 | Mechanical Design Engineer (Aerospace Exp.); Aerospace VP of Sales and Marketing; Office Engineer II - Airport Operational Readiness - Training Coordinator - LAX Airport; Airport EOC Network Administrator (D); Airport Manager- Insider Threat Program; Operations Manager (STL Airport) |
+| BANKING | 115 | 136 | 1272 | 119 | 9397 | 3146 | Relationship Banker - Woodmoor-Four Corners Financial Center - Rockville/Silver Spring Market - Silver Spring, MD; Senior Commercial Loan Officer; Relationship Banker- Carrboro; Commercial Loan Officer; Vice President of Compliance - The Tennessee Credit Union; Sr Loan Advisor |
+| BPO | 22 | 195 | 364 | 186 | 10128 | 3197 | Customer Success Manager, Woopra; Customer Service Representative; Customer Service Representative; Customer Service Lead; Client Services Associate; Part-Time Patient Service Associate/Patient Access - Brooklyn |
+| BUSINESS-DEVELOPMENT | 120 | 229 | 1813 | 773 | 8370 | 2885 | Business Account Executive 1, Small & Medium Business Direct Sales; Account Executive; Account Executive; Business Development Representative; Business Account Executive 3, Small & Medium Business Direct Sales; Principal, AWS Strategy and Business Development |
+| CHEF | 118 | 133 | 181 | 0 | 10472 | 3284 | Cook; Cook III; Line Cook; Food Service Worker; GUCCI Pastry Cook Osteria da Massimo Bottura - Beverly Hills; Restaurant Crewmember - Cook, Cashier, and Customer Service |
+| CONSTRUCTION | 112 | 334 | 1104 | 0 | 9348 | 3284 | Supervisor Network Construction; Construction Cost Estimator; Shipyard Estimator and Contracts Administrator ; HVAC Truck Based Sr Controls Technician; Construction Manager; General Laborer |
+| CONSULTANT | 115 | 270 | 536 | 0 | 9980 | 3284 | Robotic Process Automation Consultant; Commercial Sales Consultant; Sales Consultant - Steamboat Springs, CO; Compliance Consultant; Business Analytics Consultant- Revenue Cycle; Leasing Consultant |
+| DESIGNER | 107 | 150 | 392 | 121 | 10214 | 3193 | UX Researcher, Pixel; UI/UX Designer; Junior Graphic Designer; User Experience Design Specialist; ASSOCIATE DESIGNER; Interaction Designer, Google Cloud |
+| DIGITAL-MEDIA | 96 | 172 | 739 | 308 | 9781 | 3070 | Digital Marketing Measurement Analyst  ; Managing Editor; Social Media Manager; Strategic Communications Specialist and Technical Editor; Videographer; EXECUTIVE NEWS PRODUCER (NIGHTSIDE) - WANF |
+| ENGINEERING | 118 | 506 | 2753 | 249 | 7757 | 2805 | Intern- DRAM Design Engineer; Senior Test Engineer; Project Engineer; Test Engineer II; Mechanical Engineer; IT Collaboration Systems Engineer |
+| FINANCE | 118 | 397 | 1029 | 131 | 9385 | 3128 | Management Controller; Patient Financial Specialist; Controller; Controller; Financial Advisor; Investment Officer |
+| FITNESS | 117 | 21 | 24 | 0 | 10741 | 3284 | Recreational Gymnastic Coach; Recreation Attendant - $17 /hour; Coach Swim; Personal Trainer; Retail Sales Associate Bikes & Fitness; Fitness Trainer |
+| HEALTHCARE | 115 | 1248 | 490 | 53 | 9175 | 3104 | Family Medicine Physician; Therapist Support Operations Manager; Travel Nurse RN - ED - Emergency Department - $2,203 per week - a1f4z000009WaqKAAS; Dentist; Nursing Manager; Medical Director, Medical Oncology |
+| HR | 110 | 275 | 120 | 36 | 10400 | 3239 | Recruiting Strategist; HR Generalist; Compensation Consulting - Engagement Leader; Recruitment Sourcing Specialist; Seasonal Bilingual Talent Acquisition Associate; HR Coordinator - Therma |
+| INFORMATION-TECHNOLOGY | 120 | 1382 | 1739 | 874 | 7549 | 2526 | Sr. Security Engineer , Robotics Security; Data Privacy analyst (NOT ATTORNEY) with 1-3 years of experience ONLY not a BI/technical role please no data architects/developers; Senior Software Engineer, Operations Microsoft .Net (ASP.NET, C#, JavaScript, XML); SAP FICO; Software Development Engineer II, IT Product and Development; Software Engineering Manager |
+| PUBLIC-RELATIONS | 111 | 57 | 584 | 230 | 10059 | 3140 | Communications Manager; Strategic Communications Specialist, Junior; Public Affairs Specialist; Marketing Communications Manager; Sr. Communication Manager; Marketing Communications Specialist - 75484 |
+| SALES | 116 | 967 | 1087 | 793 | 8338 | 2885 | Sales Development Representative - Remote - USA; Account Manager, East Coast; Outside Sales Representative; Financial Advisor - Sales Advisor - Investment Services; Director of Sales, Commerce; Retail Sales Leader Footwear |
+| TEACHER | 102 | 156 | 104 | 53 | 10532 | 3225 | Assistant Professor, Questrom School of Business, Finance; Reading Tutor; Assistant Preschool Director; Classroom Teacher; High School Spanish Teacher; Director, Online Education Programs |
 
 ### Jobs per grading rule
 
 | Category | title_primary_code_match | title_primary_family_uncoded | title_primary_no_job_codes | title_primary_code_mismatch | title_related | code_only | title_unrelated_code_match | title_unrelated | no_evidence |
 |---|---|---|---|---|---|---|---|---|---|
-| ACCOUNTANT | 610 | 0 | 24 | 85 | 551 | 156 | 131 | 9229 | 3284 |
-| ADVOCATE | 0 | 116 | 0 | 0 | 278 | 0 | 0 | 10236 | 3440 |
-| AGRICULTURE (excluded) | 0 | 10 | 0 | 0 | 284 | 0 | 0 | 10336 | 3440 |
-| APPAREL | 0 | 108 | 0 | 0 | 503 | 0 | 0 | 10019 | 3440 |
-| ARTS | 25 | 0 | 8 | 17 | 591 | 91 | 119 | 9870 | 3349 |
-| AUTOMOBILE | 0 | 140 | 0 | 0 | 0 | 0 | 0 | 10490 | 3440 |
-| AVIATION | 0 | 49 | 0 | 0 | 615 | 0 | 0 | 9966 | 3440 |
-| BANKING | 114 | 0 | 22 | 50 | 1084 | 138 | 119 | 9241 | 3302 |
-| BPO | 46 | 0 | 149 | 88 | 189 | 89 | 184 | 9974 | 3351 |
-| BUSINESS-DEVELOPMENT | 106 | 0 | 10 | 19 | 1508 | 399 | 773 | 8214 | 3041 |
-| CHEF | 0 | 133 | 0 | 0 | 181 | 0 | 0 | 10316 | 3440 |
-| CONSTRUCTION | 0 | 334 | 0 | 0 | 1104 | 0 | 0 | 9192 | 3440 |
-| CONSULTANT | 49 | 0 | 26 | 195 | 536 | 51 | 114 | 9710 | 3389 |
-| DESIGNER | 136 | 0 | 14 | 58 | 243 | 91 | 121 | 10058 | 3349 |
-| DIGITAL-MEDIA | 155 | 0 | 17 | 39 | 486 | 214 | 308 | 9625 | 3226 |
-| ENGINEERING | 480 | 0 | 26 | 115 | 2159 | 501 | 227 | 7623 | 2939 |
-| FINANCE | 368 | 0 | 29 | 91 | 782 | 156 | 131 | 9229 | 3284 |
-| FITNESS | 0 | 25 | 0 | 0 | 0 | 0 | 0 | 10605 | 3440 |
-| HEALTHCARE | 1032 | 0 | 178 | 264 | 85 | 180 | 53 | 9018 | 3260 |
-| HR | 258 | 0 | 17 | 75 | 0 | 46 | 35 | 10245 | 3394 |
-| INFORMATION-TECHNOLOGY | 1258 | 0 | 124 | 201 | 780 | 800 | 832 | 7435 | 2640 |
-| PUBLIC-RELATIONS | 49 | 0 | 8 | 8 | 432 | 144 | 230 | 9903 | 3296 |
-| SALES | 869 | 0 | 98 | 63 | 625 | 399 | 793 | 8182 | 3041 |
-| TEACHER | 128 | 0 | 28 | 45 | 0 | 60 | 52 | 10377 | 3380 |
+| ACCOUNTANT | 610 | 0 | 24 | 85 | 551 | 156 | 131 | 9385 | 3128 |
+| ADVOCATE | 0 | 116 | 0 | 0 | 278 | 0 | 0 | 10392 | 3284 |
+| AGRICULTURE (excluded) | 0 | 10 | 0 | 0 | 284 | 0 | 0 | 10492 | 3284 |
+| APPAREL | 0 | 108 | 0 | 0 | 503 | 0 | 0 | 10175 | 3284 |
+| ARTS | 25 | 0 | 8 | 17 | 591 | 91 | 119 | 10026 | 3193 |
+| AUTOMOBILE | 0 | 137 | 0 | 0 | 0 | 0 | 0 | 10649 | 3284 |
+| AVIATION | 0 | 49 | 0 | 0 | 902 | 0 | 0 | 9835 | 3284 |
+| BANKING | 114 | 0 | 22 | 50 | 1084 | 138 | 119 | 9397 | 3146 |
+| BPO | 46 | 0 | 149 | 88 | 189 | 87 | 186 | 10128 | 3197 |
+| BUSINESS-DEVELOPMENT | 214 | 0 | 15 | 25 | 1389 | 399 | 773 | 8370 | 2885 |
+| CHEF | 0 | 133 | 0 | 0 | 181 | 0 | 0 | 10472 | 3284 |
+| CONSTRUCTION | 0 | 334 | 0 | 0 | 1104 | 0 | 0 | 9348 | 3284 |
+| CONSULTANT | 0 | 270 | 0 | 0 | 536 | 0 | 0 | 9980 | 3284 |
+| DESIGNER | 136 | 0 | 14 | 58 | 243 | 91 | 121 | 10214 | 3193 |
+| DIGITAL-MEDIA | 155 | 0 | 17 | 39 | 486 | 214 | 308 | 9781 | 3070 |
+| ENGINEERING | 480 | 0 | 26 | 115 | 2159 | 479 | 249 | 7757 | 2805 |
+| FINANCE | 368 | 0 | 29 | 91 | 782 | 156 | 131 | 9385 | 3128 |
+| FITNESS | 0 | 21 | 0 | 0 | 24 | 0 | 0 | 10741 | 3284 |
+| HEALTHCARE | 1032 | 110 | 106 | 225 | 85 | 180 | 53 | 9175 | 3104 |
+| HR | 258 | 0 | 17 | 75 | 0 | 45 | 36 | 10400 | 3239 |
+| INFORMATION-TECHNOLOGY | 1258 | 0 | 124 | 201 | 780 | 758 | 874 | 7549 | 2526 |
+| PUBLIC-RELATIONS | 49 | 0 | 8 | 8 | 432 | 144 | 230 | 10059 | 3140 |
+| SALES | 869 | 0 | 98 | 63 | 625 | 399 | 793 | 8338 | 2885 |
+| TEACHER | 128 | 0 | 28 | 45 | 0 | 59 | 53 | 10532 | 3225 |
 

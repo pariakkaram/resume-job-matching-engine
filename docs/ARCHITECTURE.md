@@ -45,24 +45,25 @@ Evaluated systems (`retrieval.yaml: systems`): **A** BM25, **B** pretrained Mini
 ## 2. Module responsibilities and API contracts
 
 Signatures are contracts: later phases may add optional parameters but must not change these.
-"✔" = implemented in Phase 2; everything else is planned for the phase shown.
+"✔" = implemented (signatures below are as built); everything else is planned for the phase shown.
 
 | Module | Phase | Responsibility | Public API |
 |---|---|---|---|
 | `src/config.py` ✔ | 2 | Load YAML configs, apply smoke-test overrides, resolve storage roots | `load_config(name, *, smoke_test=None, config_dir=None) -> dict`; `load_all_configs(...)`; `resolve_path(kind, rel) -> Path`; `storage_root(kind)`; `ConfigError` |
 | `src/data/label_rules.py` ✔ | 2 | Pure weak-label rules: title → job families; (category, families, codes) → grade | `LabelRules.from_config(cfg)`; `.assign_families(title) -> tuple[str,...]`; `.grade(category, families, codes) -> Judgment(grade, confidence, rule)`; `.included_categories`; `normalize_title()` |
-| `src/utils/logging_utils.py` | 3 | Logger setup; privacy-safe text summaries | `get_logger(name)`; `describe_text(text) -> str` (length + short hash, never content) |
-| `src/utils/reproducibility.py` | 3 | Seeds, fingerprints, atomic writes, run metadata | `set_seed(seed, deterministic)`; `atomic_write(path)` (context manager: temp file → rename); `fingerprint_jobs(df, template) -> str`; `file_sha256(path)`; `environment_info() -> dict` |
-| `src/data/ingest.py` | 3 | Read raw files via the column mapping, join lookups, emit canonical frames | `load_resumes(data_cfg) -> DataFrame`; `load_jobs(data_cfg) -> DataFrame`; `DataMissingError` (message contains manual download steps) |
-| `src/data/validate.py` | 3 | Required fields, nulls, duplicates, malformed rows, statistics | `validate_resumes(df) -> ValidationReport`; `validate_jobs(df) -> ValidationReport`; `ValidationReport.errors / .warnings / .stats / .to_dict()` |
-| `src/data/preprocess.py` | 3 | Text cleaning, HTML stripping, dedup, near-dup audit, job sampling, text templates | `clean_text(text, cfg)`; `strip_html(text)`; `deduplicate_jobs(df) -> (df, aliases)`; `deduplicate_resumes(df) -> (df, dropped)`; `near_duplicate_groups(ids, texts, threshold) -> DataFrame`; `sample_jobs(jobs, rules, cfg) -> DataFrame`; `job_text(row, template)`; `resume_text(row, template)` |
-| `src/data/build_labels.py` | 3 | Apply `LabelRules` to the corpus; persist category×job labels; build training pairs | `assign_job_families(jobs, rules) -> DataFrame`; `build_category_labels(jobs, rules) -> DataFrame`; `build_positive_pairs(resumes, splits, labels, cfg) -> DataFrame` |
-| `src/data/split.py` | 3 | Resume-level stratified, group-aware train/val/test split | `split_resumes(resumes, groups, cfg) -> DataFrame[resume_id, split]`; `assert_partition_isolation(splits, *frames)` |
-| `src/retrieval/bm25.py` | 3 | System A | `tokenize(text, cfg) -> list[str]`; `BM25Retriever.fit(job_ids, texts)`; `.search(text, k) -> list[ScoredJob]`; `.save(dir)` / `BM25Retriever.load(dir, expected_fingerprint)` |
-| `src/retrieval/biencoder.py` | 3 | Load a SentenceTransformer; encode to float32 unit vectors | `BiEncoder(model_id_or_path, max_seq_length, device)`; `.encode(texts, batch_size) -> np.ndarray[n, d]`; `.model_id`; `.dimension` |
-| `src/retrieval/faiss_index.py` | 3 | Build/persist/load/verify FAISS `IndexFlatIP` + ID map + metadata | `JobIndex.build(embeddings, job_ids, meta)`; `.search(query_vecs, k) -> list[list[ScoredJob]]`; `.save(dir)`; `JobIndex.load(dir, expected: dict)`; `IndexMismatchError`, `MissingArtifactError` |
+| `src/utils/logging_utils.py` ✔ | 3 | Logger setup; privacy-safe text summaries | `get_logger(name)`; `describe_text(text) -> str` (length + short hash, never content) |
+| `src/utils/reproducibility.py` ✔ | 3 | Seeds, fingerprints, atomic writes, run metadata | `set_seed(seed, deterministic)`; `stable_seed(seed, key)`; `atomic_write(path)` (yields a temp path, renamed on success); `atomic_write_json/text`; `fingerprint_jobs(job_ids, job_texts) -> str`; `file_sha256(path)`; `config_hash(cfg)`; `environment_info() -> dict` |
+| `src/data/ingest.py` ✔ | 3 | Read raw files via the column mapping, join lookups, emit canonical frames | `load_resumes(data_cfg) -> DataFrame`; `load_jobs(data_cfg) -> DataFrame` (both with `.attrs["ingest"]`: source, row count, malformed lines, notes); `read_table(path, fmt, columns)`; `make_ids(...)`; raises `DataMissingError` (with download steps), `SchemaError` |
+| `src/data/validate.py` ✔ | 3 | Required fields, nulls, duplicates, statistics | `validate_resumes(df, stage)`, `validate_jobs(df, stage) -> ValidationReport` (stage `raw`: fixable problems are warnings; `processed`: all are errors); `.ok / .errors / .warnings / .stats / .to_dict() / .raise_if_errors()` |
+| `src/data/preprocess.py` ✔ | 3 | Text cleaning, HTML stripping, dedup, near-dup audit, job sampling, text templates | `clean_text(text, cfg)`; `strip_html(text)`; `clean_resumes(raw, cfg) -> (kept, dropped)`; `clean_jobs(raw, cfg) -> (kept, dropped)`; `deduplicate_resumes(df) -> (kept, dropped)`; `deduplicate_jobs(df) -> (kept, aliases)`; `near_duplicate_groups(ids, texts, threshold, method) -> (groups, pairs)`; `sample_jobs(jobs, rules, cfg, seed) -> (sample, stats)`; `subsample_resumes(df, n, seed)`; `build_texts(df, template)`; `render_text(record, template)` |
+| `src/data/build_labels.py` ✔ | 3 | Apply `LabelRules` to the corpus; category×job labels; training positives | `assign_job_families(jobs, rules)`; `build_category_labels(jobs, rules, mapping_version)`; `apply_min_support(labels, n) -> (labels, excluded)`; `label_summary(labels)`; `category_grades(labels, category)`; `build_positive_pairs(resumes, splits, labels, pairs_cfg, seed, use_splits=("train",))` (raises `LeakageError` for test) |
+| `src/data/split.py` ✔ | 3 | Resume-level stratified, group-aware train/val/test split | `split_resumes(resumes, split_cfg) -> DataFrame[resume_id, resume_category, near_dup_group, split]` (groups and `label_status` read from columns); `assert_partition_isolation(splits)`; `assert_only_splits(frame, splits, allowed, what)` |
+| `src/data/prepare.py` ✔ | 3 | Orchestrate CLI steps 1–4 with skip-if-current and a manifest | `run_validation(configs)`; `prepare_data(configs, force=False) -> PrepareResult` |
+| `src/retrieval/bm25.py` ✔ | 3 | System A | `tokenize(text, cfg)`; `BM25Retriever(cfg).fit(job_ids, texts)`; `.scores(text)`; `.search(text, k) -> list[ScoredJob]`; `.save(dir, meta)` / `BM25Retriever.load(dir, expected: dict)` |
+| `src/retrieval/biencoder.py` ✔ | 3 | Load a SentenceTransformer; encode to float32 unit vectors | `BiEncoder(model_id_or_path, max_seq_length, device, model=None)`; `.encode(texts, batch_size) -> np.ndarray[n, d]`; `.model_id`; `.dimension`; `.fingerprint()` |
+| `src/retrieval/faiss_index.py` ✔ | 3 | Build/persist/load/verify FAISS `IndexFlatIP` + ID map + metadata | `JobIndex.build(embeddings, job_ids, meta)`; `.search(query_vecs, k) -> list[list[ScoredJob]]`; `.save(dir)`; `JobIndex.load(dir, expected: dict)`; `IndexMismatchError`, `MissingArtifactError` |
 | `src/retrieval/reranker.py` | 5 | Cross-encoder scoring; reports when unavailable | `CrossEncoderReranker(model_id, max_length, device)`; `.available: bool`; `.rerank(resume_text, candidates, job_texts) -> list[ScoredJob]` |
-| `src/retrieval/pipeline.py` | 3 + 5 | One entry point for all four systems | `MatchingPipeline.from_config(system, configs)`; `.search(resume_text, top_k_retrieve=None, top_k_final=None) -> SearchResult` |
+| `src/retrieval/pipeline.py` ✔ (3 of 4 systems) | 3 + 5 | Index building and querying for every system | `load_corpus(data_cfg) -> Corpus`; `build_index(system, configs, force=False) -> (dir, built)`; `MatchingPipeline.from_config(system, configs)`; `.search(resume_text, top_k_retrieve=None, top_k_final=None) -> SearchResult`; `.job_metadata(job_id)` |
 | `src/training/mine_hard_negatives.py` | 4 | BM25 negatives for TRAINING resumes only | `mine_bm25_negatives(train_resumes, jobs, labels, positives, cfg) -> DataFrame`; `sample_random_negatives(...) -> DataFrame` |
 | `src/training/train_biencoder.py` | 4 | MNRL fine-tuning via `SentenceTransformerTrainer`; checkpoints; config export | `build_training_dataset(pairs, negatives, resumes, jobs, cfg) -> datasets.Dataset`; `train(run_name, configs) -> Path` |
 | `src/training/train_cross_encoder.py` | 4 (optional) | Optional cross-encoder fine-tuning experiment | `train(configs) -> Path` |
@@ -76,7 +77,7 @@ Signatures are contracts: later phases may add optional parameters but must not 
 | `src/explainability/match_evidence.py` | 7 | Per-result evidence | `explain(resume_skills, job, ranked_job) -> MatchEvidence` |
 | `src/app/gradio_app.py` | 7 | UI only; calls `predict` | `predict(resume_text, system, show_stages) -> dict` (pure, unit-tested); `build_app(...) -> gr.Blocks` |
 
-**Shared result types** (`src/retrieval/pipeline.py`):
+**Shared result types** (defined in `src/retrieval/types.py`, re-exported by `src/retrieval/pipeline.py`; shared exceptions live in `src/errors.py`):
 
 ```python
 @dataclass(frozen=True)
@@ -217,9 +218,10 @@ The file is written once per mode and reused by later runs. `--force` regenerate
 6. **Jobs** are shared by all partitions. Retrieval runs over a fixed, known corpus, and the README
    discloses this. Test judgments never reach training: manual labels are stored in a file the
    training code never reads, and weak labels are category-level, independent of individual test resumes.
-7. **Expected size.** A preview count on the raw data (drop texts under 50 words, drop exact
-   duplicates, drop AGRICULTURE) gives 2,418 resumes, so roughly 484 test, 193 val and 1,741 train.
-   Phase 3 reports the actual split sizes.
+7. **Actual size** (Phase 3 run, seed 42): 2,418 included resumes → 1,740 train, 194 val, 484 test.
+   Every included category has at least 4 test resumes (BPO has the fewest). On tiny smoke subsets,
+   where no category can fill every fold, the split falls back to unstratified group folds and logs
+   a warning (D45).
 
 ---
 
@@ -257,13 +259,17 @@ job title and the resume headline and summary are kept. Most texts are longer th
 ```
 data/processed/                     # git-ignored; rebuilt by scripts/prepare_data.py
   resumes.parquet  jobs.parquet  job_aliases.parquet  splits.parquet
-  category_job_labels.parquet  data_report.json  manifest.json
+  category_job_labels.parquet  dropped_rows.parquet
+  near_duplicates_resumes.parquet  near_duplicates_jobs.parquet
+  data_report.json  data_report.md  manifest.json        # manifest written last
+data/processed_smoke/               # same layout, written by --smoke-test (D40)
 data/labels/                        # manual_judgments.csv is committed (IDs + grades only)
   labeling_pool.csv  labeling_pool_key.csv  manual_judgments.csv  llm_judgments.csv
 artifacts/                          # git-ignored; root relocatable via RJM_ARTIFACTS_DIR (Drive in Colab)
-  indexes/<system>/                 # system ∈ {bm25, pretrained, finetuned}
-    index.faiss | bm25.pkl          # (bm25.pkl: rank_bm25 object, local-only, trusted)
-    embeddings.npy  job_ids.json  meta.json
+  indexes/bm25/                     # weights.npz (sparse BM25 weights)  vocab.json  job_ids.json  meta.json
+  indexes/<system>/                 # system ∈ {pretrained, finetuned}
+    index.faiss  embeddings.npy  job_ids.json  meta.json
+  indexes_smoke/...                 # same layout, written by --smoke-test
   models/<run_name>/                # run_name ∈ {biencoder_random, biencoder_hard}
     checkpoints/checkpoint-<step>/  final/  training_config.yaml  train_log.jsonl  meta.json
   negatives/<mode>.parquet          # mode ∈ {none, random, hard}
