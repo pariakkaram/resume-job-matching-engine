@@ -210,6 +210,7 @@ def synthetic_env(tmp_path, monkeypatch):
     facts = write_synthetic_raw(tmp_path / "data" / "raw")
     configs = {name: load_config(name, smoke_test=False) for name in ("data", "labels", "retrieval", "training")}
     configs["labels"]["min_highly_relevant_jobs"] = 1
+    configs["data"]["freeze"] = {"enforce": False}  # the synthetic corpus is not the frozen one
     return configs, facts
 
 

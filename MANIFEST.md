@@ -9,13 +9,24 @@ Every file in the repository and its status (spec §0.2, §19):
 | `tested` | executed or covered by passing tests |
 | `blocked` | cannot proceed (reason given) |
 
-Last updated: **end of Phase 3** (2026-10-26). Test run: `pytest` gives **144 passed, 0 skipped**, including 4 integration tests on the real data and MiniLM (Python 3.11.17, Windows, CPU).
+Last updated: **end of Phase 3** (2026-10-26). Test run: `pytest` gives **153 passed, 0 skipped**, including 5 integration tests on the real data and MiniLM (Python 3.11.17, Windows, CPU).
+
+## Frozen corpus and labels: `labels-v1` (frozen 2026-10-26)
+
+Recorded in `data/labels/FROZEN.json`. `prepare_data.py` (and the Phase 4+ training scripts) stop if
+either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the approval rule.
+
+| Item | Value |
+|---|---|
+| Corpus fingerprint (10,000 jobs) | `31b06e0e7ab1bc1150664e043f6e96ed23a4ce0dba1c7e083b4e3417553aefc3` |
+| `configs/labels.yaml` sha256 (LF-normalised) | `0c49250c1c46fa10e366bb69954dd65a46e7e1089c7dd059d9dc5352816150f5` |
 
 ## Root
 
 | File | Status | Phase | Notes |
 |---|---|---|---|
 | `PROJECT_SPEC.md` | provided | – | Source of truth (written by the user) |
+| `CLAUDE.md` | implemented | 3 | Working rules, including the approval rule for labels/sampler/corpus changes |
 | `MANIFEST.md` | implemented | 2 | This file; updated every phase |
 | `README.md` | implemented | 2 → 9 | Short status page for now; full 24-section README in Phase 9 |
 | `LICENSE` | planned | 9 | Chosen after the dataset and model licences are verified (audit §6) |
@@ -41,7 +52,7 @@ Last updated: **end of Phase 3** (2026-10-26). Test run: `pytest` gives **144 pa
 |---|---|---|---|
 | `docs/PHASE1_AUDIT.md` | done | 1 | Requirements checklist, data findings, risks |
 | `docs/ARCHITECTURE.md` | implemented | 2 → 3 | Module contracts, schemas, protocols, artifact layout. Updated for Phase 3 (BM25 storage, added modules) |
-| `docs/DECISIONS.md` | implemented | 2 → 3 | D1–D17 and D47–D55 accepted; D18–D46 proposed |
+| `docs/DECISIONS.md` | implemented | 2 → 3 | D1–D17 and D47–D57 accepted; D18–D46 proposed |
 | `docs/LABEL_MAPPING_REVIEW.md` | tested | 2 → 3 | Regenerated for labels.yaml v3 by `scripts/review_label_mapping.py` |
 | `data/README.md` | implemented | 3 | Sources, versions, licence status (unverified), processing steps, measured statistics, privacy |
 
@@ -59,6 +70,7 @@ Last updated: **end of Phase 3** (2026-10-26). Test run: `pytest` gives **144 pa
 | `src/data/preprocess.py` | tested | 3 | Cleaning, HTML stripping, dedup, near-dup audit, stable hash-priority sampling (D53), templates (`test_preprocessing.py`) |
 | `src/data/build_labels.py` | tested | 3 | Category × job labels, min-support exclusion, seeded positive pairs (train only) |
 | `src/data/prepare.py` | tested | 3 | *Not in the spec tree* (D39). Orchestrates steps 1–4 with skip-if-current and a manifest |
+| `src/data/freeze.py` | tested | 3 | *Not in the spec tree* (D56). FROZEN.json read/write and `check_frozen` |
 | `src/data/split.py` | tested | 3 | Stratified, group-aware split plus isolation checks (`test_data_splits.py`) |
 | `src/retrieval/__init__.py` | implemented | 3 | |
 | `src/retrieval/types.py` | tested | 3 | *Not in the spec tree* (D39). `ScoredJob`, `RankedJob`, `SearchResult` |
@@ -92,7 +104,8 @@ Last updated: **end of Phase 3** (2026-10-26). Test run: `pytest` gives **144 pa
 | File | Status | Phase | Notes |
 |---|---|---|---|
 | `scripts/review_label_mapping.py` | tested | 2 | *Not in the spec tree* (D32). Ran on the real data in about 10 s |
-| `scripts/prepare_data.py` | tested | 3 | CLI steps 1–4. Ran on the full data (about 1.5 min) and in smoke mode; `--validate-only`, `--force`, skip-if-current |
+| `scripts/prepare_data.py` | tested | 3 | CLI steps 1–4. Ran on the full data (about 1.5 min) and in smoke mode; `--validate-only`, `--force`, `--unfreeze`, skip-if-current. Exits 3 on a freeze mismatch (verified) |
+| `scripts/freeze_corpus.py` | tested | 3 | *Not in the spec tree* (D56). Wrote `FROZEN.json` for labels-v1; refuses to overwrite without `--replace` |
 | `scripts/build_index.py` | tested | 3 → 5 | Built the BM25 index (10,000 jobs, 85,375 terms) and the pretrained index (10,000 × 384, 525 s CPU encode); smoke mode too. `finetuned` is skipped until Phase 4 |
 | `scripts/train.py` | planned | 4 | CLI steps 7–8 |
 | `scripts/create_labeling_pool.py` | planned | 6 | CLI step 11 (export and import) |
@@ -118,6 +131,7 @@ Last updated: **end of Phase 3** (2026-10-26). Test run: `pytest` gives **144 pa
 | `tests/test_skill_matching.py` | planned | 7 | |
 | `tests/test_pipeline.py` | tested | 3 → 7 | 14 tests: synthetic end-to-end, restart/stale-index handling, empty input; real-data integration for bm25 and pretrained |
 | `tests/test_utils.py` | tested | 3 | *Not in the spec tree* (D39). 4 tests |
+| `tests/test_freeze.py` | tested | 3 | *Not in the spec tree* (D56). 9 tests: FROZEN.json matches labels.yaml and the processed corpus (integration), enforcement in `prepare_data` |
 
 ## Notebooks
 
@@ -136,6 +150,7 @@ Last updated: **end of Phase 3** (2026-10-26). Test run: `pytest` gives **144 pa
 | `data/raw/` | present, git-ignored | Supplied by the user (Resume.csv and 8 LinkedIn CSVs) |
 | `data/processed/` | built (git-ignored) | Full run of 2026-10-26; corpus fingerprint `31b06e0e7ab1bc11…` (labels.yaml v3, stable sampler) |
 | `data/processed_smoke/` | built (git-ignored) | Smoke run (48 resumes, 200 jobs) |
-| `data/labels/.gitkeep` | implemented | Only `manual_judgments.csv` is committed here |
+| `data/labels/.gitkeep` | implemented | Only `manual_judgments.csv` and `FROZEN.json` are committed here |
+| `data/labels/FROZEN.json` | implemented | labels-v1 freeze record (committed) |
 | `artifacts/.gitkeep` | implemented | Models, indexes, negatives (git-ignored). Built so far: `indexes/bm25`, `indexes/pretrained`, `indexes_smoke/*` |
 | `results/.gitkeep` | implemented | Evaluation outputs (git-ignored) |

@@ -17,6 +17,7 @@ from src.config import CONFIG_DIR
 from src.data import build_labels as bl
 from src.data import preprocess as pp
 from src.data.ingest import load_jobs, load_resumes, raw_dir
+from src.data.freeze import check_frozen, labels_yaml_sha256, load_frozen
 from src.data.label_rules import LabelRules
 from src.data.split import assert_partition_isolation, split_resumes
 from src.data.validate import validate_jobs, validate_resumes
@@ -60,7 +61,14 @@ class PrepareResult:
 
 
 def mapping_version() -> str:
-    return file_sha256(CONFIG_DIR / "labels.yaml")
+    """Line-ending-independent hash of configs/labels.yaml (same on Windows and Colab checkouts)."""
+    return labels_yaml_sha256(CONFIG_DIR / "labels.yaml")
+
+
+def _freeze_settings(data_cfg: Mapping[str, Any]) -> tuple[bool, bool]:
+    """(enforce, check_corpus) from ``data.yaml: freeze`` (both default to True)."""
+    cfg = data_cfg.get("freeze") or {}
+    return bool(cfg.get("enforce", True)), bool(cfg.get("check_corpus", True))
 
 
 def input_files(data_cfg: Mapping[str, Any]) -> list[Path]:
@@ -115,8 +123,16 @@ def run_validation(configs: Mapping[str, Mapping[str, Any]]) -> tuple[pd.DataFra
     return resumes, jobs, summary
 
 
-def prepare_data(configs: Mapping[str, Mapping[str, Any]], *, force: bool = False) -> PrepareResult:
+def prepare_data(
+    configs: Mapping[str, Mapping[str, Any]], *, force: bool = False, unfreeze: bool = False
+) -> PrepareResult:
+    """Run steps 1-4. Stops with FrozenArtifactError if labels.yaml or the resulting job corpus differ
+    from data/labels/FROZEN.json, unless ``unfreeze`` (see src/data/freeze.py)."""
     data_cfg, labels_cfg = configs["data"], configs["labels"]
+    enforce, check_corpus = _freeze_settings(data_cfg)
+    overrides: list[str] = []
+    if enforce:
+        overrides += check_frozen(check_labels=True, unfreeze=unfreeze)
     out_dir = processed_dir(data_cfg)
     fingerprints = input_fingerprints(configs)
     manifest_path = out_dir / "manifest.json"
@@ -124,6 +140,8 @@ def prepare_data(configs: Mapping[str, Mapping[str, Any]], *, force: bool = Fals
         manifest = read_json(manifest_path)
         outputs_present = all((out_dir / name).is_file() for name in OUTPUT_FILES)
         if manifest.get("inputs") == fingerprints and outputs_present:
+            if enforce and check_corpus:
+                check_frozen(corpus_fingerprint=manifest.get("corpus_fingerprint"), check_labels=False, unfreeze=unfreeze)
             log.info("processed data in %s is up to date (use --force to rebuild)", out_dir)
             return PrepareResult(out_dir, True, read_json(out_dir / "data_report.json"))
 
@@ -193,12 +211,18 @@ def prepare_data(configs: Mapping[str, Mapping[str, Any]], *, force: bool = Fals
     )
 
     corpus = corpus_from_frame(jobs, template)
+    # Checked before anything is written, so a mismatching run never replaces the frozen corpus.
+    if enforce and check_corpus:
+        overrides += check_frozen(corpus_fingerprint=corpus.fingerprint, check_labels=False, unfreeze=unfreeze)
+    frozen = load_frozen()
     report = {
         "created_at": utc_now(),
         "smoke_test": bool(data_cfg.get("smoke_test")),
         "seed": seed,
         "mapping_version": version,
         "corpus_fingerprint": corpus.fingerprint,
+        "frozen_version": (frozen or {}).get("version"),
+        "freeze_overridden": overrides,
         "raw": raw_reports,
         "resumes": {
             "raw_rows": int(len(raw_resumes)),
@@ -258,6 +282,8 @@ def prepare_data(configs: Mapping[str, Mapping[str, Any]], *, force: bool = Fals
         "inputs": fingerprints,
         "mapping_version": version,
         "corpus_fingerprint": corpus.fingerprint,
+        "frozen_version": (frozen or {}).get("version"),
+        "freeze_overridden": overrides,
         "job_text_template": template,
         "outputs": {
             name: {"sha256": file_sha256(out_dir / name)} for name in OUTPUT_FILES

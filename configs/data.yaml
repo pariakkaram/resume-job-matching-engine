@@ -94,7 +94,16 @@ split:
   stratify_by: resume_category
   seed: 42
 
+# Frozen corpus and label mapping (data/labels/FROZEN.json, repository-relative). prepare_data.py
+# and the training scripts stop if configs/labels.yaml or the resulting job corpus differ from it,
+# unless run with --unfreeze. See src/data/freeze.py and CLAUDE.md.
+freeze:
+  enforce: true
+  check_corpus: true
+
 smoke_test:
+  freeze:
+    check_corpus: false              # the 200-job smoke corpus is not the frozen corpus; labels still checked
   paths:
     processed_dir: processed_smoke   # never overwrite the full processed data
   sampling:

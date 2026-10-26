@@ -1,0 +1,17 @@
+{
+  "version": "labels-v1",
+  "frozen_on": "2026-10-26",
+  "corpus_fingerprint": "31b06e0e7ab1bc1150664e043f6e96ed23a4ce0dba1c7e083b4e3417553aefc3",
+  "labels_yaml_sha256": "0c49250c1c46fa10e366bb69954dd65a46e7e1089c7dd059d9dc5352816150f5",
+  "n_jobs": 10000,
+  "git_commit": "e1faa2bfe9435e33175b1cbf941f51f42f538caa+dirty",
+  "note": "Corpus and label mapping approved by the user on 2026-10-26 (labels.yaml version 3, stable sampler). Frozen before Phase 4.",
+  "invalidated_by_changes": [
+    "processed labels and the job corpus (data/processed/)",
+    "BM25 and FAISS indexes (artifacts/indexes/)",
+    "hard and random negatives (artifacts/negatives/)",
+    "fine-tuned models (artifacts/models/)",
+    "the manual labelling pool and any judgments made on it (data/labels/)",
+    "evaluation results and reports (results/)"
+  ]
+}
