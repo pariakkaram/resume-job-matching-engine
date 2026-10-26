@@ -4,8 +4,8 @@ Two-stage neural retrieval: given a resume, retrieve the top 50 jobs with a cont
 fine-tuned bi-encoder over a FAISS index, re-rank them with a cross-encoder, and return the
 top 10 with matched-skill evidence. Evaluated against BM25 and a pretrained bi-encoder.
 
-> **Status: under construction (Phase 3 of 9 complete).** No models have been trained and no
-> results exist yet. This README will be completed in Phase 9. Until then:
+> **Status: under construction (Phase 4 of 9 complete).** Training code is in place and has been
+> smoke-tested on CPU only; full training (Colab T4) has not run, and no results exist yet. This README will be completed in Phase 9. Until then:
 >
 > - [PROJECT_SPEC.md](PROJECT_SPEC.md): requirements
 > - [MANIFEST.md](MANIFEST.md): every file and its status
@@ -28,17 +28,26 @@ python -m venv .venv
 The datasets are not included. Place the Kaggle *Resume Dataset* at `data/raw/resume/Resume.csv`
 and the Kaggle *LinkedIn Job Postings* (2023) files under `data/raw/linkedin/`. See [data/README.md](data/README.md).
 
-## What runs so far (Phases 1–3)
+## What runs so far (Phases 1–4)
 
 ```bash
 .venv/Scripts/python scripts/prepare_data.py                    # validate, clean, label, split -> data/processed/
 .venv/Scripts/python scripts/build_index.py --system bm25       # System A index
 .venv/Scripts/python scripts/build_index.py --system pretrained # System B index (downloads MiniLM; ~9 min on CPU)
+.venv/Scripts/python scripts/train.py --mine-only --run all     # training pairs + random/BM25 negatives (~30 s CPU)
+.venv/Scripts/python scripts/train.py --run all                 # fine-tune both ablation runs (meant for a GPU)
 .venv/Scripts/python -m pytest                                  # unit + integration tests
 ```
 
-Add `--smoke-test` to either script for a 50-resume / 200-job run that writes to separate
-`*_smoke` folders. Both scripts skip work whose outputs are already up to date; `--force` rebuilds.
+Add `--smoke-test` to any script for a 50-resume / 200-job run that writes to separate
+`*_smoke` folders (training: 1 epoch on CPU). Every script skips work whose outputs are already up
+to date; `--force` rebuilds. Training resumes from its latest checkpoint after an interruption.
+
+Training uses only the *training* resumes for positive pairs and negatives; *validation* resumes
+pick the checkpoint (weak-label NDCG@10); *test* resumes are never read. Hard negatives are the
+top BM25 hits that the weak labels mark as confidently irrelevant, excluding positives, partially
+relevant and uncertain jobs and their near-duplicates. Weak labels are imperfect, so some mined
+negatives can still be relevant jobs (false negatives).
 
 ## Known limitations of the weak labels
 
@@ -68,6 +77,11 @@ the 10,000-job corpus; see `docs/LABEL_MAPPING_REVIEW.md` for the full numbers.
   the corpus is already matched, so the corpus simply has few of them. Most AVIATION resumes are
   mechanics and supply specialists, while many of the 49 jobs are aerospace engineering, airport
   and pilot roles. About 650 mechanic, maintenance and engineering jobs count as partially relevant.
+- **2.5% of hard negatives are random (accepted).** For 344 of the 13,920 training pairs (43 of
+  1,740 training resumes, 31 of them ACCOUNTANT, then FINANCE 6 and SALES 3), the BM25 top 100 has no
+  job that is confidently irrelevant, because it is filled with related finance and accounting
+  postings. Those pairs get a random eligible negative instead (D60). The ablation results report
+  this count.
 - **All labels are category-level.** Every resume in a category shares the same positives, and
   weak-label errors can produce false negatives during hard-negative mining. That is why the
   primary evaluation uses manually reviewed judgments.

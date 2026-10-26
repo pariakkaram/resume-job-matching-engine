@@ -68,5 +68,7 @@ smoke_test:
   top_k_final: 5
   biencoder:
     batch_size: 16
+    models:
+      finetuned: models_smoke/biencoder_hard/final   # written by scripts/train.py --smoke-test
   reranker:
     batch_size: 8

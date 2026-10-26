@@ -252,3 +252,99 @@ def fake_encoder_factory():
         return BiEncoder(ref, max_seq_length=retrieval_cfg["biencoder"].get("max_seq_length"), model=FakeSentenceModel())
 
     return factory
+
+
+# ---- Phase 4: a hand-built training world and a tiny local bi-encoder ---------------------------
+
+TOY_TEMPLATE = "{job_title}. {job_description}"
+
+# job_id: (title, description, IT grade, IT confidence, CHEF grade, CHEF confidence)
+TOY_JOBS = {
+    "J01": ("Software Developer", "python code servers linux cloud", 2, "high", 0, "high"),
+    "J02": ("Software Engineer", "java code database cloud", 2, "medium", 0, "high"),
+    "J03": ("Data Analyst", "python sql dashboards code", 1, "medium", 0, "high"),            # partial
+    "J04": ("Mystery Role", "python code linux", None, "low", 0, "low"),                       # uncertain
+    "J05": ("Line Cook", "kitchen cooking food prep", 0, "high", 2, "high"),
+    "J06": ("Python Data Clerk", "python sql dashboards code", 0, "high", 0, "high"),         # near-dup of J03
+    "J07": ("Prep Cook", "python code servers kitchen food", 0, "high", 2, "high"),           # lexically IT-like
+    "J08": ("Sous Chef", "kitchen menu sauces plating", 0, "high", 2, "high"),
+    "J09": ("Office Clerk", "python filing phones", 0, "low", 0, "low"),                      # low confidence
+    "J10": ("Software Developer", "python code servers linux cloud", 0, "high", 0, "high"),  # same text as J01
+}
+TOY_NEAR_DUPLICATES = [("J03", "J06")]
+
+# resume_id: (category, split, text)
+TOY_RESUMES = {
+    "R1": ("IT", "train", "python code servers linux developer"),
+    "R2": ("IT", "train", "java code cloud database engineer"),
+    "R3": ("CHEF", "train", "kitchen cooking sauces menu chef"),
+    "R4": ("IT", "val", "python cloud servers code"),
+    "R5": ("IT", "test", "python linux code servers held out"),
+    "R6": ("CHEF", "test", "kitchen plating sauces held out"),
+}
+
+
+@pytest.fixture
+def toy_data():
+    """A TrainingData with one job for each exclusion rule (see the comments in TOY_JOBS)."""
+    import pandas as pd
+
+    from src.retrieval.pipeline import corpus_from_frame
+    from src.training.pairs import TrainingData, duplicate_groups
+    from src.utils.reproducibility import text_sha1
+
+    jobs = pd.DataFrame(
+        [{"job_id": j, "job_title": t, "job_description": d} for j, (t, d, *_) in TOY_JOBS.items()]
+    )
+    corpus = corpus_from_frame(jobs, TOY_TEMPLATE)
+    labels = []
+    for job, (_, _, it_g, it_c, chef_g, chef_c) in TOY_JOBS.items():
+        labels.append(("IT", job, it_g, it_c))
+        labels.append(("CHEF", job, chef_g, chef_c))
+    labels = pd.DataFrame(labels, columns=["resume_category", "job_id", "grade", "confidence"])
+    labels["grade"] = pd.array(labels["grade"], dtype="Int8")
+    labels["rule"] = "toy"
+    labels["label_source"] = "weak:labels.yaml"
+    labels["mapping_version"] = "toy-mapping"
+    resumes = pd.DataFrame(
+        [{"resume_id": r, "resume_text": text, "resume_category": cat} for r, (cat, _, text) in TOY_RESUMES.items()]
+    ).set_index("resume_id", drop=False)
+    splits = pd.DataFrame(
+        [{"resume_id": r, "resume_category": cat, "near_dup_group": r, "split": s} for r, (cat, s, _) in TOY_RESUMES.items()]
+    )
+    pairs = pd.DataFrame(TOY_NEAR_DUPLICATES, columns=["id_a", "id_b"])
+    hashes = {j: text_sha1(t) for j, t in corpus.texts.items()}
+    return TrainingData(
+        resumes=resumes,
+        splits=splits,
+        labels=labels,
+        corpus=corpus,
+        job_groups=duplicate_groups(corpus.job_ids, pairs, hashes),
+        resume_template="{resume_text}",
+        mapping_version="toy-mapping",
+    )
+
+
+@pytest.fixture(scope="session")
+def tiny_model_dir(tmp_path_factory):
+    """A randomly initialised 1-layer BERT saved locally, loadable by SentenceTransformer (no download)."""
+    import torch
+    from transformers import BertConfig, BertModel, BertTokenizerFast
+
+    directory = tmp_path_factory.mktemp("tiny-bert")
+    words = set(FILLER.split())
+    for vocab in CATEGORY_VOCAB.values():
+        words |= set(vocab.split())
+    for titles in JOB_TITLES.values():
+        words |= {w.lower() for t in titles for w in t.split()}
+    tokens = ["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]"] + sorted(words) + list(".,")
+    (directory / "vocab.txt").write_text("\n".join(tokens) + "\n", encoding="utf-8")
+    tokenizer = BertTokenizerFast(vocab_file=str(directory / "vocab.txt"), do_lower_case=True)
+    tokenizer.save_pretrained(str(directory))
+    config = BertConfig(
+        vocab_size=len(tokens), hidden_size=32, num_hidden_layers=1, num_attention_heads=2,
+        intermediate_size=64, max_position_embeddings=128,
+    )
+    torch.manual_seed(0)
+    BertModel(config).save_pretrained(str(directory))
+    return directory

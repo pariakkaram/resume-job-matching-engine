@@ -52,8 +52,20 @@ trainer:
   logging_steps: 20
   load_best_model_at_end: true
   metric_for_best_model: val_ndcg@10    # weak labels on VALIDATION resumes, never test
+  eval_on_start: true                   # step-0 evaluation = the pretrained model on val
   resume_from_checkpoint: auto          # resume the latest checkpoint in the run dir if present
   max_steps: -1
+
+# Checkpoint selection (src/training/validation.py): VALIDATION resumes only, full job corpus,
+# weak labels of each resume's category (uncertain counts as 0). Plus a validation MNRL loss on
+# validation positive pairs. Test resumes are never used during training.
+validation:
+  split: val
+  name: val             # metric names are prefixed with this: val_ndcg@10
+  k: 10
+  gain: exponential     # same NDCG gain as evaluation.yaml
+  batch_size: 64
+  eval_loss: true
 
 # Named runs. Each deep-merges over the settings above. The ablation trains both with the same
 # base model, split, pairs, step budget and evaluation code; only the negatives differ.
@@ -72,13 +84,17 @@ smoke_test:
   pairs:
     max_positives_per_resume: 2
   negatives:
+    output_dir: negatives_smoke   # never overwrite the full negatives or models
     hard:
       top_k: 20
       sample_from_top: 5
   trainer:
+    output_dir: models_smoke
+    epochs: 1
     batch_size: 8
-    max_steps: 10
+    max_steps: -1        # exactly one epoch over the smoke pairs
     eval_steps: 5
     save_steps: 5
+    save_total_limit: 1
     logging_steps: 1
     fp16: false

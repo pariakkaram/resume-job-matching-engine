@@ -74,7 +74,13 @@ def test_repository_configs_load(smoke):
     assert set(configs) == set(CONFIG_NAMES)
     if smoke:
         assert configs["data"]["sampling"]["n_jobs"] == 200
-        assert configs["training"]["trainer"]["max_steps"] == 10
+        trainer = configs["training"]["trainer"]
+        assert trainer["epochs"] == 1 and trainer["max_steps"] == -1  # smoke test = exactly one epoch
+        # Smoke runs never write over the full negatives or models, and System C finds the smoke model.
+        assert configs["training"]["negatives"]["output_dir"] == "negatives_smoke"
+        assert trainer["output_dir"] == "models_smoke"
+        finetuned = configs["retrieval"]["biencoder"]["models"]["finetuned"]
+        assert finetuned == f"models_smoke/{configs['training']['default_run']}/final"
 
 
 def test_repository_configs_are_mutually_consistent():

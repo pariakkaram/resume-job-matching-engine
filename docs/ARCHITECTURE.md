@@ -65,9 +65,12 @@ Signatures are contracts: later phases may add optional parameters but must not 
 | `src/retrieval/faiss_index.py` ✔ | 3 | Build/persist/load/verify FAISS `IndexFlatIP` + ID map + metadata | `JobIndex.build(embeddings, job_ids, meta)`; `.search(query_vecs, k) -> list[list[ScoredJob]]`; `.save(dir)`; `JobIndex.load(dir, expected: dict)`; `IndexMismatchError`, `MissingArtifactError` |
 | `src/retrieval/reranker.py` | 5 | Cross-encoder scoring; reports when unavailable | `CrossEncoderReranker(model_id, max_length, device)`; `.available: bool`; `.rerank(resume_text, candidates, job_texts) -> list[ScoredJob]` |
 | `src/retrieval/pipeline.py` ✔ (3 of 4 systems) | 3 + 5 | Index building and querying for every system | `load_corpus(data_cfg) -> Corpus`; `build_index(system, configs, force=False) -> (dir, built)`; `MatchingPipeline.from_config(system, configs)`; `.search(resume_text, top_k_retrieve=None, top_k_final=None) -> SearchResult`; `.job_metadata(job_id)` |
-| `src/training/mine_hard_negatives.py` | 4 | BM25 negatives for TRAINING resumes only | `mine_bm25_negatives(train_resumes, jobs, labels, positives, cfg) -> DataFrame`; `sample_random_negatives(...) -> DataFrame` |
-| `src/training/train_biencoder.py` | 4 | MNRL fine-tuning via `SentenceTransformerTrainer`; checkpoints; config export | `build_training_dataset(pairs, negatives, resumes, jobs, cfg) -> datasets.Dataset`; `train(run_name, configs) -> Path` |
-| `src/training/train_cross_encoder.py` | 4 (optional) | Optional cross-encoder fine-tuning experiment | `train(configs) -> Path` |
+| `src/training/pairs.py` ✔ | 4 | Training data, named run configs, positive pairs (+ validation), negative eligibility | `resolve_run_config(training_cfg, run_name) -> dict`; `load_training_data(data_cfg) -> TrainingData` (resumes, splits, labels, corpus, `job_groups`, fingerprints); `prepare_positive_pairs(data, pairs_cfg, seed, split="train"\|"val")` (test raises `LeakageError`); `validate_positive_pairs(pairs, data, pairs_cfg, allowed_splits)`; `eligible_negatives(data, negatives_cfg) -> {category: job_ids}`; `duplicate_groups(job_ids, near_dup_pairs, text_hashes)` |
+| `src/training/mine_hard_negatives.py` ✔ | 4 | Random and BM25 negatives for TRAINING resumes only; the persisted training-pair file | `mine_bm25_negatives(train_resumes, positives, eligible, retriever, negatives_cfg, seed, *, splits, query_text) -> DataFrame`; `sample_random_negatives(positives, resume_category, eligible, per_pair, seed, *, splits) -> DataFrame` (both raise `LeakageError` for non-train resumes); `build_negative_set(mode, data, run_cfg, configs, force=False) -> NegativeSet(frame, path, meta, reused)` |
+| `src/training/losses.py` ✔ | 4 | MNRL with in-batch false-negative masking (D24, D58) | `MaskedMultipleNegativesRankingLoss(model, row_category, row_jobs, negative_ok, scale)`; `.candidate_mask(labels, n_doc_columns)` |
+| `src/training/validation.py` ✔ | 4 | Checkpoint selection: weak-label NDCG@10 on VAL resumes (D61) | `WeakLabelRetrievalEvaluator(queries, corpus, grades, k, gain)`; `build_validation_evaluator(data, validation_cfg)` |
+| `src/training/train_biencoder.py` ✔ | 4 | MNRL fine-tuning via `SentenceTransformerTrainer`; checkpoints; resume; config export | `pair_rows(pairs, n_negatives)`; `build_training_dataset(rows, data, n_negatives, label_offset=0) -> datasets.Dataset`; `masking_tables(...)`; `check_training_freeze(configs, data, unfreeze)`; `train(run_name, configs, force=False, unfreeze=False) -> TrainResult(run_name, run_dir, final_dir, skipped, meta)` |
+| `src/training/train_cross_encoder.py` | optional | Optional cross-encoder fine-tuning experiment (not implemented; `cross_encoder.finetune: false`) | `train(configs) -> Path` |
 | `src/evaluation/metrics.py` | 6 | Pure metric functions | `ndcg_at_k(ranked, rels, k, gain)`; `reciprocal_rank(ranked, rels, threshold)`; `recall_at_k(ranked, rels, k, threshold)` |
 | `src/evaluation/latency.py` | 6 | Per-stage timing with warm-up | `time_system(pipeline, texts, cfg) -> DataFrame` |
 | `src/evaluation/evaluate.py` | 6 | Run every system on the test resumes with one judgment set | `evaluate(systems, test_resumes, judgments, cfg) -> EvalResult` |
@@ -194,8 +197,12 @@ Hard-negative mining can therefore pick true positives as negatives. The README 
 
 ### 4.3 Training-pair file (`artifacts/negatives/<mode>.parquet`)
 
-`resume_id, positive_job_id, negative_job_id (null when mode=none), label, label_source, rule, confidence, negative_source (random|bm25), bm25_rank, notes`.
-The file is written once per mode and reused by later runs. `--force` regenerates it.
+`resume_id, positive_job_id, negative_job_id (null when mode=none), negative_index, label, label_source, rule, confidence, negative_source (none|random|bm25|random_fallback), bm25_rank, notes`.
+One row per (resume, positive, negative); `label` is the positive's weak grade. Only TRAINING resumes
+appear. `<mode>.meta.json` records the inputs (seed, pair and negative settings, corpus, mapping and
+split fingerprints), a summary and the file's sha256. The file is reused while all of these match;
+`--force` regenerates it. Eligible negatives exclude whole duplicate groups (D59); a pair with too few
+eligible BM25 hits is filled at random (D60).
 
 ---
 
@@ -241,6 +248,9 @@ The file is written once per mode and reused by later runs. `--force` regenerate
   Excludes model loading and corpus encoding. Hardware is recorded. CPU and GPU numbers are never
   mixed in one comparison.
 - **Uncertainty.** Paired bootstrap over test resumes (1,000 resamples, 95% CI).
+- **Ablation.** The random-vs-hard table also reports each arm's negative sources from
+  `artifacts/negatives/<mode>.meta.json` (`summary.negative_source`), in particular the number of
+  hard-negative pairs filled at random (`random_fallback`; 344 of 13,920 pairs on the labels-v1 data, D60).
 
 ---
 
@@ -272,8 +282,10 @@ artifacts/                          # git-ignored; root relocatable via RJM_ARTI
     index.faiss  embeddings.npy  job_ids.json  meta.json
   indexes_smoke/...                 # same layout, written by --smoke-test
   models/<run_name>/                # run_name ∈ {biencoder_random, biencoder_hard}
-    checkpoints/checkpoint-<step>/  final/  training_config.yaml  train_log.jsonl  meta.json
-  negatives/<mode>.parquet          # mode ∈ {none, random, hard}
+    checkpoints/checkpoint-<step>/  final/  training_config.yaml  train_log.jsonl
+    run_inputs.json  meta.json      # meta.json is written last and marks a finished run
+  negatives/<mode>.parquet  <mode>.meta.json   # mode ∈ {none, random, hard}
+  models_smoke/  negatives_smoke/   # same layouts, written by --smoke-test
 results/                            # git-ignored; relocatable via RJM_RESULTS_DIR
   evaluation/<run_id>/              # run_id = YYYYMMDD-HHMMSS
     metrics.csv  per_query.csv  results.md  ablation.md  config.json  report.md  plots/*.png
