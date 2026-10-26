@@ -9,7 +9,9 @@ Every file in the repository and its status (spec §0.2, §19):
 | `tested` | executed or covered by passing tests |
 | `blocked` | cannot proceed (reason given) |
 
-Last updated: **end of Phase 4** (2026-10-26). Test run: `pytest` gives **186 passed, 0 skipped**, including 7 integration tests on the real data and MiniLM (Python 3.11.17, Windows, CPU).
+Last updated: **end of Phase 5** (2026-10-26). Test run: `pytest` gives **197 passed, 1 skipped**, including 8 integration tests on the real data, MiniLM and the real cross-encoder (Python 3.11.17, Windows, CPU). The skipped test is the real-data System D test, which needs the full fine-tuned model (Colab).
+
+Phase 5 execution status: System D (top 50 → cross-encoder → top 10) **ran end to end on the smoke data** (CPU; a smoke model was retrained for this and deleted again afterwards). The real cross-encoder was downloaded and tested. On the full data, Systems A and B were queried with the existing indexes; Systems C and D are blocked until full training runs on Colab. Phase 5 review (2026-10-26): approved; D66–D71 accepted.
 
 Phase 4 execution status: negatives **mined on the full data** (CPU); bi-encoder training **smoke-tested only** (CPU, MiniLM, 1 epoch on the 48-resume subset, both runs). Full training has **not run yet** (planned on a Colab T4). Phase 4 review (2026-10-26): D58–D65 accepted, `hard.top_k` kept at 100, cross-encoder fine-tuning stays off. The smoke models (`artifacts/models_smoke/`) were deleted afterwards to free space.
 
@@ -45,7 +47,7 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `configs/labels.yaml` | tested, **approved 2026-10-26** | 2 → 3 | Version 3: 41 job families, 24-category mapping (AGRICULTURE excluded). Review changes D47–D55. Smoke override: support threshold 1 |
 | `configs/skills.yaml` | implemented | 2 → 7 | 185 skills with aliases and matching rules; loaded by the config tests, used in Phase 7 |
 | `configs/training.yaml` | tested | 2 → 4 | Used by the full mining run and both smoke training runs. Phase 4 added `validation`, `trainer.eval_on_start`, and smoke output folders with a 1-epoch smoke run (D64) |
-| `configs/retrieval.yaml` | tested | 2 → 3/5 | Used to build the BM25, pretrained and (smoke) fine-tuned indexes. Smoke indexes go to `artifacts/indexes_smoke/`; smoke System C loads `models_smoke/biencoder_hard/final` |
+| `configs/retrieval.yaml` | tested | 2 → 5 | Used to build the BM25, pretrained and (smoke) fine-tuned indexes. Smoke indexes go to `artifacts/indexes_smoke/`; smoke System C loads `models_smoke/biencoder_hard/final` |
 | `configs/evaluation.yaml` | tested | 2 → 6 | Loaded and cross-checked by tests |
 
 ## Documentation
@@ -53,8 +55,8 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | File | Status | Phase | Notes |
 |---|---|---|---|
 | `docs/PHASE1_AUDIT.md` | done | 1 | Requirements checklist, data findings, risks |
-| `docs/ARCHITECTURE.md` | implemented | 2 → 4 | Module contracts, schemas, protocols, artifact layout. Updated for Phase 4 (training modules as built, pair-file columns, model/negatives layout, ablation must report the hard-negative fallback count) |
-| `docs/DECISIONS.md` | implemented | 2 → 4 | D1–D17, D47–D57 and D58–D65 (Phase 4) accepted; D18–D46 proposed |
+| `docs/ARCHITECTURE.md` | implemented | 2 → 5 | Module contracts, schemas, protocols, artifact layout. Updated for Phase 4 (training modules, pair-file columns, model/negatives layout, ablation must report the fallback count) and Phase 5 (re-ranker, pipeline API, `fallback_reason`) |
+| `docs/DECISIONS.md` | implemented | 2 → 5 | D1–D17, D47–D57, D58–D65 (Phase 4) and D66–D71 (Phase 5) accepted; D18–D46 proposed |
 | `docs/LABEL_MAPPING_REVIEW.md` | tested | 2 → 3 | Regenerated for labels.yaml v3 by `scripts/review_label_mapping.py` |
 | `data/README.md` | implemented | 3 | Sources, versions, licence status (unverified), processing steps, measured statistics, privacy |
 
@@ -75,12 +77,12 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `src/data/freeze.py` | tested | 3 | *Not in the spec tree* (D56). FROZEN.json read/write and `check_frozen` |
 | `src/data/split.py` | tested | 3 | Stratified, group-aware split plus isolation checks (`test_data_splits.py`) |
 | `src/retrieval/__init__.py` | implemented | 3 | |
-| `src/retrieval/types.py` | tested | 3 | *Not in the spec tree* (D39). `ScoredJob`, `RankedJob`, `SearchResult` |
+| `src/retrieval/types.py` | tested | 3 → 5 | *Not in the spec tree* (D39). `ScoredJob`, `RankedJob`, `SearchResult` (Phase 5 added the optional `fallback_reason`) |
 | `src/retrieval/bm25.py` | tested | 3 | System A. Scores match `rank_bm25` exactly; npz/JSON index (D35–D37) |
 | `src/retrieval/biencoder.py` | tested | 3 | SentenceTransformer wrapper giving unit float32 vectors and a weight fingerprint |
 | `src/retrieval/faiss_index.py` | tested | 3 | IndexFlatIP with ID map and metadata; verified on load |
-| `src/retrieval/pipeline.py` | tested | 3 → 5 | Index building and querying for bm25 / pretrained / finetuned (smoke fine-tuned index built from the Phase 4 model). `finetuned_rerank` arrives in Phase 5 (raises a clear ConfigError until then) |
-| `src/retrieval/reranker.py` | planned | 5 | |
+| `src/retrieval/pipeline.py` | tested | 3 → 5 | All four systems. System D re-ranks System C's top 50 (D67) with visible fallback (D68), validates every ranking (D69), portable fine-tuned index metadata and training-run check (D70) |
+| `src/retrieval/reranker.py` | tested | 5 | Cross-encoder with forced raw logits (D66), stable tie order, unavailable-model reporting. Tested with a fake and with the real `ms-marco-MiniLM-L-6-v2` |
 | `src/training/__init__.py` | implemented | 4 | |
 | `src/training/pairs.py` | tested | 4 | *Not in the spec tree* (D65). Run configs, training data, positive pairs and their validation, negative eligibility with duplicate groups (D59) |
 | `src/training/mine_hard_negatives.py` | tested | 4 | Random and BM25 negatives, training resumes only, persisted with fingerprints. Ran on the full data in about 30 s (CPU). Hard set: 13,576 BM25 + 344 `random_fallback` pairs (2.5%, 43 resumes, mostly ACCOUNTANT; accepted, D60) |
@@ -111,8 +113,9 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `scripts/review_label_mapping.py` | tested | 2 | *Not in the spec tree* (D32). Ran on the real data in about 10 s |
 | `scripts/prepare_data.py` | tested | 3 | CLI steps 1–4. Ran on the full data (about 1.5 min) and in smoke mode; `--validate-only`, `--force`, `--unfreeze`, skip-if-current. Exits 3 on a freeze mismatch (verified) |
 | `scripts/freeze_corpus.py` | tested | 3 | *Not in the spec tree* (D56). Wrote `FROZEN.json` for labels-v1; refuses to overwrite without `--replace` |
-| `scripts/build_index.py` | tested | 3 → 5 | Built the BM25 index (10,000 jobs, 85,375 terms) and the pretrained index (10,000 × 384, 525 s CPU encode); smoke mode too. `finetuned` is skipped until Phase 4 |
+| `scripts/build_index.py` | tested | 3 → 5 | Built the BM25 index (10,000 jobs, 85,375 terms) and the pretrained index (10,000 × 384, 525 s CPU encode). Built the smoke fine-tuned index (200 × 384) in Phase 5. The full `finetuned` index waits for Colab training |
 | `scripts/train.py` | tested | 4 | CLI steps 7–8: `--mine-only`, `--run <name>\|all`, `--smoke-test`, `--force`, `--unfreeze` (exit 3 on a freeze mismatch). Ran `--mine-only --run all` on the full data and `--smoke-test --run all` (both runs, 1 epoch each, about 40 s each on CPU) |
+| `scripts/search.py` | tested | 5 | *Not in the spec tree* (D71). CLI step 10 for single queries: any system, `--demo` / `--resume-file`, `--show-stages`, FALLBACK notice. Ran System D on the smoke data and Systems A and B on the full data |
 | `scripts/create_labeling_pool.py` | planned | 6 | CLI step 11 (export and import) |
 | `scripts/evaluate.py` | planned | 6 | CLI steps 10, 12 and 14 |
 | `scripts/run_ablation.py` | planned | 6 | CLI step 13 |
@@ -123,7 +126,7 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | File | Status | Phase | Notes |
 |---|---|---|---|
 | `tests/__init__.py` | implemented | 2 | |
-| `tests/conftest.py` | tested | 2 → 4 | Synthetic labels config, synthetic raw dataset files with deliberate defects, fake encoder; Phase 4: a hand-built training world with one job per exclusion rule and a tiny local BERT (no download) |
+| `tests/conftest.py` | tested | 2 → 5 | Synthetic labels config, synthetic raw dataset files with deliberate defects, fake encoder; Phase 4: a hand-built training world and a tiny local BERT (no download); Phase 5: a fake cross-encoder |
 | `tests/test_config.py` | tested | 2 → 4 | *Not in the spec tree* (D32). 9 tests; the smoke check now asserts the 1-epoch smoke run and separate smoke outputs (D64) |
 | `tests/test_labels.py` | tested | 2 → 3 | 72 tests: grading rules, config validation, known titles, approved mapping changes, label building, min support, positive pairs (train only) |
 | `tests/test_data_validation.py` | tested | 3 | 11 tests: ingestion, malformed lines, missing data and schema errors, validation reports |
@@ -135,7 +138,8 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `tests/test_metrics.py` | tested (partial) | 4 → 6 | 3 tests: NDCG with both gains against hand-computed values, edge cases |
 | `tests/test_training.py` | tested | 4 | *Not in the spec tree* (D65). 12 tests: positive-pair validation, val-only evaluator, masked loss (mask, reference value, equality with plain MNRL), dataset and masking tables, end-to-end training with train/val/test isolation, resume and changed-input refusal, freeze enforcement |
 | `tests/test_skill_matching.py` | planned | 7 | |
-| `tests/test_pipeline.py` | tested | 3 → 7 | 14 tests: synthetic end-to-end, restart/stale-index handling, empty input; real-data integration for bm25 and pretrained |
+| `tests/test_pipeline.py` | tested | 3 → 7 | 14 tests: synthetic end-to-end, restart/stale-index handling, empty input; real-data integration for bm25 and pretrained. Phase 5: System D now fails on a missing model before loading the cross-encoder |
+| `tests/test_reranker.py` | tested | 5 | *Not in the spec tree* (D71). 12 tests: re-rank order, raw scores and ties; unavailable model; System D vs System C candidates; fallback on load and scoring failures; ID errors never hidden; `fallback: error`; top-k caps; finished-training and fingerprint checks; portable index after moving the artifacts root; ranking validation; real cross-encoder (integration); real System D (integration, skipped until the full model exists) |
 | `tests/test_utils.py` | tested | 3 | *Not in the spec tree* (D39). 4 tests |
 | `tests/test_freeze.py` | tested | 3 | *Not in the spec tree* (D56). 9 tests: FROZEN.json matches labels.yaml and the processed corpus (integration), enforcement in `prepare_data` |
 
@@ -158,5 +162,5 @@ either value changes, unless run with `--unfreeze`; see `CLAUDE.md` for the appr
 | `data/processed_smoke/` | built (git-ignored) | Smoke run (48 resumes, 200 jobs) |
 | `data/labels/.gitkeep` | implemented | Only `manual_judgments.csv` and `FROZEN.json` are committed here |
 | `data/labels/FROZEN.json` | implemented | labels-v1 freeze record (committed) |
-| `artifacts/.gitkeep` | implemented | Models, indexes, negatives (git-ignored). Built so far: `indexes/bm25`, `indexes/pretrained`, `negatives/{random,hard}.parquet` (full data, 13,920 rows each), `indexes_smoke/{bm25,pretrained,finetuned}`, `negatives_smoke/*`. `models_smoke/` was deleted after the Phase 4 review; rerun `scripts/train.py --smoke-test --run all` to recreate it (`indexes_smoke/finetuned` needs it again before it can be loaded). Nothing under `artifacts/` or `data/` (except the committed `data/labels/` files) is tracked or staged |
+| `artifacts/.gitkeep` | implemented | Models, indexes, negatives (git-ignored). Built so far: `indexes/bm25`, `indexes/pretrained`, `negatives/{random,hard}.parquet` (full data, 13,920 rows each), `indexes_smoke/{bm25,pretrained,finetuned}`, `negatives_smoke/*`. `models_smoke/` is absent (retrained for the Phase 5 smoke run, then deleted again); rerun `scripts/train.py --smoke-test` to recreate it (`indexes_smoke/finetuned` needs it before it can be loaded). The cross-encoder lives in the Hugging Face cache, not in `artifacts/`. Nothing under `artifacts/` or `data/` (except the committed `data/labels/` files) is tracked or staged |
 | `results/.gitkeep` | implemented | Evaluation outputs (git-ignored) |

@@ -148,8 +148,12 @@ def test_missing_artifacts_and_unsupported_systems_fail_clearly(prepared, fake_e
         MatchingPipeline.from_config("pretrained", configs, encoder_factory=fake_encoder_factory)
     with pytest.raises(MissingArtifactError, match="Train it first"):
         MatchingPipeline.from_config("finetuned", configs)
-    with pytest.raises(ConfigError, match="Phase 5"):
-        MatchingPipeline.from_config("finetuned_rerank", configs)
+    # System D needs System C's model; it fails before trying to load the cross-encoder.
+    def no_reranker(cfg):
+        raise AssertionError("the cross-encoder must not load when stage 1 is missing")
+
+    with pytest.raises(MissingArtifactError, match="Train it first"):
+        MatchingPipeline.from_config("finetuned_rerank", configs, reranker_factory=no_reranker)
     with pytest.raises(ConfigError, match="Unknown system"):
         MatchingPipeline.from_config("tfidf", configs)
     (tmp_path / "data" / "processed" / "jobs.parquet").unlink()

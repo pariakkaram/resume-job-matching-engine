@@ -35,3 +35,4 @@ class SearchResult:
     results: list[RankedJob]  # final list (top_k_final)
     fallback_used: bool = False  # cross-encoder requested but unavailable
     timings_ms: dict[str, float] = field(default_factory=dict)  # encode, retrieve, rerank, end_to_end
+    fallback_reason: str | None = None  # why the cross-encoder was not used (when fallback_used)

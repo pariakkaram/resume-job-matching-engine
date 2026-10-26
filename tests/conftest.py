@@ -348,3 +348,28 @@ def tiny_model_dir(tmp_path_factory):
     torch.manual_seed(0)
     BertModel(config).save_pretrained(str(directory))
     return directory
+
+
+# ---- Phase 5: a deterministic stand-in for the cross-encoder ------------------------------------
+
+
+class FakeCrossEncoder:
+    """Scores a (query, document) pair by shared lowercase words minus 3 (so raw scores can be negative).
+
+    Records each call's batch size and activation function so tests can check how it was called.
+    """
+
+    def __init__(self, fail_with: Exception | None = None) -> None:
+        self.fail_with = fail_with
+        self.calls: list[dict] = []
+
+    def predict(self, pairs, batch_size=32, activation_fn=None, show_progress_bar=None, **kwargs):
+        import re
+
+        import numpy as np
+
+        self.calls.append({"n": len(pairs), "batch_size": batch_size, "activation_fn": activation_fn})
+        if self.fail_with is not None:
+            raise self.fail_with
+        words = lambda text: set(re.findall(r"[a-z]+", text.lower()))  # noqa: E731
+        return np.array([len(words(q) & words(d)) - 3.0 for q, d in pairs], dtype=np.float32)

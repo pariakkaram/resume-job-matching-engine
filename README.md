@@ -4,8 +4,8 @@ Two-stage neural retrieval: given a resume, retrieve the top 50 jobs with a cont
 fine-tuned bi-encoder over a FAISS index, re-rank them with a cross-encoder, and return the
 top 10 with matched-skill evidence. Evaluated against BM25 and a pretrained bi-encoder.
 
-> **Status: under construction (Phase 4 of 9 complete).** Training code is in place and has been
-> smoke-tested on CPU only; full training (Colab T4) has not run, and no results exist yet. This README will be completed in Phase 9. Until then:
+> **Status: under construction (Phase 5 of 9 complete).** Training and cross-encoder re-ranking are
+> in place and smoke-tested on CPU only; full training (Colab T4) has not run, and no results exist yet. This README will be completed in Phase 9. Until then:
 >
 > - [PROJECT_SPEC.md](PROJECT_SPEC.md): requirements
 > - [MANIFEST.md](MANIFEST.md): every file and its status
@@ -28,7 +28,7 @@ python -m venv .venv
 The datasets are not included. Place the Kaggle *Resume Dataset* at `data/raw/resume/Resume.csv`
 and the Kaggle *LinkedIn Job Postings* (2023) files under `data/raw/linkedin/`. See [data/README.md](data/README.md).
 
-## What runs so far (Phases 1–4)
+## What runs so far (Phases 1–5)
 
 ```bash
 .venv/Scripts/python scripts/prepare_data.py                    # validate, clean, label, split -> data/processed/
@@ -36,6 +36,8 @@ and the Kaggle *LinkedIn Job Postings* (2023) files under `data/raw/linkedin/`. 
 .venv/Scripts/python scripts/build_index.py --system pretrained # System B index (downloads MiniLM; ~9 min on CPU)
 .venv/Scripts/python scripts/train.py --mine-only --run all     # training pairs + random/BM25 negatives (~30 s CPU)
 .venv/Scripts/python scripts/train.py --run all                 # fine-tune both ablation runs (meant for a GPU)
+.venv/Scripts/python scripts/build_index.py --system finetuned  # System C index (System D reuses it)
+.venv/Scripts/python scripts/search.py --system finetuned_rerank --demo --show-stages   # top 50 -> cross-encoder -> top 10
 .venv/Scripts/python -m pytest                                  # unit + integration tests
 ```
 
@@ -48,6 +50,10 @@ pick the checkpoint (weak-label NDCG@10); *test* resumes are never read. Hard ne
 top BM25 hits that the weak labels mark as confidently irrelevant, excluding positives, partially
 relevant and uncertain jobs and their near-duplicates. Weak labels are imperfect, so some mined
 negatives can still be relevant jobs (false negatives).
+
+System D re-ranks the fine-tuned bi-encoder's top 50 with `cross-encoder/ms-marco-MiniLM-L-6-v2` and
+returns the top 10. Cross-encoder scores are raw logits, not probabilities. If the cross-encoder
+cannot be loaded, results are returned in bi-encoder order and clearly marked as a fallback.
 
 ## Known limitations of the weak labels
 
